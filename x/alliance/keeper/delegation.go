@@ -24,6 +24,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, validator type
 		return nil, status.Errorf(codes.NotFound, "asset with denom: %s does not exist in alliance whitelist", coin.Denom)
 	}
 
+	// for the AllianceDenomTwo.
 	// Check and send delegated tokens into the alliance module address
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, delAddr, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
@@ -57,6 +58,7 @@ func (k Keeper) Delegate(ctx sdk.Context, delAddr sdk.AccAddress, validator type
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeDelegate,
+			sdk.NewAttribute(types.AttributeKeySender, delAddr.String()),
 			sdk.NewAttribute(types.AttributeKeyValidator, validator.OperatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newValidatorShares.String()),
@@ -146,6 +148,7 @@ func (k Keeper) Redelegate(ctx sdk.Context, delAddr sdk.AccAddress, srcVal types
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRedelegate,
+			sdk.NewAttribute(types.AttributeKeySender, delAddr.String()),
 			sdk.NewAttribute(types.AttributeKeySrcValidator, srcVal.OperatorAddress),
 			sdk.NewAttribute(types.AttributeKeyDstValidator, dstVal.OperatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
@@ -217,6 +220,7 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, validator ty
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUndelegate,
+			sdk.NewAttribute(types.AttributeKeySender, delAddr.String()),
 			sdk.NewAttribute(types.AttributeKeyValidator, validator.OperatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, coin.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
@@ -613,23 +617,22 @@ func (k Keeper) ResetAssetAndValidators(ctx sdk.Context, asset types.AllianceAss
 }
 
 func (k Keeper) ClearDustDelegation(ctx sdk.Context, delAddr sdk.AccAddress, validator types.AllianceValidator, asset types.AllianceAsset) {
-	delegation, found := k.GetDelegation(ctx, delAddr, validator, asset.Denom)
-	// If not found then the delegation has already been deleted, do nothing else
-	if !found {
-		return
-	}
 	delegatorSharesToRemove := sdk.NewDecCoinFromDec(asset.Denom, sdk.ZeroDec())
 	validatorSharesToRemove := sdk.NewDecCoinFromDec(asset.Denom, sdk.ZeroDec())
 
-	tokensLeft := types.GetDelegationTokensWithShares(delegation.Shares, validator, asset)
-	// If there are no tokens that can be claimed by the delegation, delete the delegation
-	if tokensLeft.IsZero() {
-		store := ctx.KVStore(k.storeKey)
-		delAddr := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress) // acc address should always be valid here
-		key := types.GetDelegationKey(delAddr, validator.GetOperator(), asset.Denom)
-		store.Delete(key)
+	delegation, found := k.GetDelegation(ctx, delAddr, validator, asset.Denom)
+	// If not found then the delegation has already been deleted, do nothing else
+	if found {
+		tokensLeft := types.GetDelegationTokensWithShares(delegation.Shares, validator, asset)
+		// If there are no tokens that can be claimed by the delegation, delete the delegation
+		if tokensLeft.IsZero() {
+			store := ctx.KVStore(k.storeKey)
+			delAddr := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress) // acc address should always be valid here
+			key := types.GetDelegationKey(delAddr, validator.GetOperator(), asset.Denom)
+			store.Delete(key)
 
-		delegatorSharesToRemove = sdk.NewDecCoinFromDec(asset.Denom, delegation.Shares)
+			delegatorSharesToRemove = sdk.NewDecCoinFromDec(asset.Denom, delegation.Shares)
+		}
 	}
 
 	validatorTokensLeft := validator.TotalTokensWithAsset(asset)

@@ -54,11 +54,11 @@ func TestProposalsContent(t *testing.T) {
 		str   string
 	}{
 		"msg_create_alliance_proposal": {
-			p:     types.NewMsgCreateAllianceProposal("Alliance1", "Alliance with 1", "ibc/denom1", sdk.NewDec(1), sdk.NewDec(1), sdk.NewDec(1), time.Second),
+			p:     types.NewMsgCreateAllianceProposal("Alliance1", "Alliance with 1", "ibc/denom1", sdk.NewDec(1), types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(5)}, sdk.NewDec(1), sdk.NewDec(1), time.Second),
 			title: "Alliance1",
 			desc:  "Alliance with 1",
 			typ:   "msg_create_alliance_proposal",
-			str:   "title:\"Alliance1\" description:\"Alliance with 1\" denom:\"ibc/denom1\" reward_weight:\"1000000000000000000\" take_rate:\"1000000000000000000\" reward_change_rate:\"1000000000000000000\" reward_change_interval:<seconds:1 > ",
+			str:   "title:\"Alliance1\" description:\"Alliance with 1\" denom:\"ibc/denom1\" reward_weight:\"1000000000000000000\" take_rate:\"1000000000000000000\" reward_change_rate:\"1000000000000000000\" reward_change_interval:<seconds:1 > reward_weight_range:<min:\"0\" max:\"5000000000000000000\" > ",
 		},
 		"msg_update_alliance_proposal": {
 			p:     types.NewMsgUpdateAllianceProposal("Alliance2", "Alliance with 2", "ibc/denom2", sdk.NewDec(2), sdk.NewDec(2), sdk.NewDec(2), time.Hour),
@@ -102,6 +102,40 @@ func TestProposalsContent(t *testing.T) {
 			assert.Equal(t, tc.typ, unwrap.Prop.ProposalType())
 			assert.Equal(t, "alliance", unwrap.Prop.ProposalRoute())
 			assert.Equal(t, tc.str, unwrap.Prop.String())
+		})
+	}
+}
+
+func TestInvalidProposalsContent(t *testing.T) {
+	cases := map[string]struct {
+		p     govtypes.Content
+		title string
+		desc  string
+		typ   string
+		str   string
+	}{
+		"msg_create_alliance_proposal": {
+			p:     types.NewMsgCreateAllianceProposal("Alliance1", "Alliance with 1", "ibc/denom1", sdk.NewDec(1), types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(5)}, sdk.NewDec(1), sdk.NewDec(1), -time.Second),
+			title: "Alliance1",
+			desc:  "Alliance with 1",
+			typ:   "msg_create_alliance_proposal",
+		},
+		"msg_update_alliance_proposal": {
+			p:     types.NewMsgUpdateAllianceProposal("Alliance2", "Alliance with 2", "ibc/denom2", sdk.NewDec(2), sdk.NewDec(2), sdk.NewDec(2), -time.Hour),
+			title: "Alliance2",
+			desc:  "Alliance with 2",
+			typ:   "msg_update_alliance_proposal",
+		},
+	}
+
+	cdc := codec.NewLegacyAmino()
+	govtypes.RegisterLegacyAminoCodec(cdc)
+	types.RegisterLegacyAminoCodec(cdc)
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			err := tc.p.ValidateBasic()
+			require.Error(t, err)
 		})
 	}
 }
