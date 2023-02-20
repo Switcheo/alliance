@@ -6,7 +6,7 @@ declare readonly OS=$(uname -s)
 declare readonly PLATFORM=$(uname -m)
 declare readonly GO_VERSION="1.19.5"
 declare readonly GO_MD5="09e7f3b3ef34eb6099fe7312ecc314be"
-declare readonly GOA_VERSION="v0.0.1-goa"
+declare readonly GOA_VERSION="v0.1.0-goa"
 declare readonly BIN_PATH="${HOME}/go/bin"
 declare readonly GITHUB_REPO="terra-money/alliance"
 declare readonly GITHUB_URL="https://github.com/${GITHUB_REPO}"
@@ -49,6 +49,7 @@ parse_options(){
             --keyring-backend) KEYB=${2:-}      ; shift 2 ;;
             -m|--moniker)      MONIKER=${2:-}   ; shift 2 ;;
             -p|--prefix)       PREFIX=${2:-}    ; shift 2 ;;
+            -u|--upgrade)      UPGRADE="true"   ; shift   ;;
             --help)            usage            ; exit    ;;
             --)                shift            ; break   ;;
             *)
@@ -80,7 +81,7 @@ init_environment(){
     fi
 
     # check if binary exists/create binary
-    if [ -z "$(which ${BINARY})" ]; then 
+    if [ -z "$(which ${BINARY})" ] || [ -n "${UPGRADE:-}" ] ; then 
         create_binary "${PREFIX}"
     fi
 }
