@@ -2,17 +2,17 @@
 
 set -eu
 
-declare readonly OS=$(uname -s)
-declare readonly PLATFORM=$(uname -m)
-declare readonly GO_VERSION="1.19.5"
-declare readonly GO_MD5="09e7f3b3ef34eb6099fe7312ecc314be"
-declare readonly GOA_VERSION="v0.1.0-goa"
-declare readonly BIN_PATH="${HOME}/go/bin"
-declare readonly GITHUB_REPO="terra-money/alliance"
-declare readonly GITHUB_URL="https://github.com/${GITHUB_REPO}"
-declare readonly GITHUB_RAW="https://raw.githubusercontent.com/${GITHUB_REPO}/${GOA_VERSION}"
+OS=$(uname -s)
+PLATFORM=$(uname -m)
+GO_VERSION="1.19.5"
+GO_MD5="09e7f3b3ef34eb6099fe7312ecc314be"
+GOA_DEFAULT_VERSION="v0.0.1-goa"
+BIN_PATH="${HOME}/go/bin"
+GITHUB_REPO="terra-money/alliance"
+GITHUB_URL="https://github.com/${GITHUB_REPO}"
+GITHUB_RAW="https://raw.githubusercontent.com/${GITHUB_REPO}"
 
-declare GTMPDIR="${TMPDIR:-/tmp}"
+GTMPDIR="${TMPDIR:-/tmp}"
 
 main(){
     parse_options $@
@@ -24,6 +24,7 @@ main(){
     display_validate
     display_start_chain
     display_port_info
+    display_upgrade
 }
 
 usage(){
@@ -35,6 +36,7 @@ usage(){
     echo "  -f, --from <from>              Name or address of private key with which to sign"
     echo "  -m, --moniker <moniker>        This node's common name"
     echo "  -p, --prefix <prefix>          The account prefix for the chain"
+    echo "  -v, --version <version>        The version of the binary to build (default \"${GOA_DEFAULT_VERSION}\")"
     echo "  --keyring-backend <backend>    Select keyring's backend (os|file|kwallet|pass|test|memory) (default \"os\")"
     echo "  --help                         Display this help and exit"
 }
@@ -42,16 +44,16 @@ usage(){
 parse_options(){
     while [ $# -gt 0 ]; do
         case "$1" in
-            -b|--binary)       BINARY=${2:-}    ; shift 2 ;;
-            -c|--chain-id)     CHAIN_ID=${2:-}  ; shift 2 ;;
-            -d|--denom)        DENOM=${2:-}     ; shift 2 ;;
-            -f|--from)         FROMKEY=${2:-}   ; shift 2 ;;
-            --keyring-backend) KEYB=${2:-}      ; shift 2 ;;
-            -m|--moniker)      MONIKER=${2:-}   ; shift 2 ;;
-            -p|--prefix)       PREFIX=${2:-}    ; shift 2 ;;
-            -u|--upgrade)      UPGRADE="true"   ; shift   ;;
-            --help)            usage            ; exit    ;;
-            --)                shift            ; break   ;;
+            -b|--binary)       BINARY=${2:-}      ; shift 2 ;;
+            -c|--chain-id)     CHAIN_ID=${2:-}    ; shift 2 ;;
+            -d|--denom)        DENOM=${2:-}       ; shift 2 ;;
+            -f|--from)         FROMKEY=${2:-}     ; shift 2 ;;
+            --keyring-backend) KEYB=${2:-}        ; shift 2 ;;
+            -m|--moniker)      MONIKER=${2:-}     ; shift 2 ;;
+            -p|--prefix)       PREFIX=${2:-}      ; shift 2 ;;
+            -v|--version)      GOA_VERSION=${2:-} ; shift 2 ;;
+            --help)            usage              ; exit    ;;
+            --)                shift              ; break   ;;
             *)
                 echo "Not implemented: $1" >&2
                 usage
@@ -79,9 +81,16 @@ init_environment(){
     if [ -z "${FROMKEY:-}" ]; then
         FROMKEY="${MONIKER}"
     fi
-
+    
+    # checkfor upgrade
+    if [ -n "${GOA_VERSION:-}" ]; then
+        create_binary "${PREFIX}"
+    else
+        GOA_VERSION="${GOA_DEFAULT_VERSION}"
+    fi
+    
     # check if binary exists/create binary
-    if [ -z "$(which ${BINARY})" ] || [ -n "${UPGRADE:-}" ] ; then 
+    if [ -z "$(which ${BINARY})" ]; then 
         create_binary "${PREFIX}"
     fi
 }
@@ -112,17 +121,17 @@ verify_chain_id (){
 
 get_binary(){
     local chain_id=$1
-    echo "$(cut -d "-" -f1 <<< $chain_id)d"
+    echo "$(echo $chain_id | cut -d "-" -f1)d"
 }
 
 get_prefix(){
     local chain_id=$1
-    cut -d "-" -f1 <<< $chain_id
+    echo $chain_id | cut -d "-" -f1
 }
 
 get_denom(){
     local prefix=$1
-    echo "u$(cut -c-3  <<< $prefix)"
+    echo "u$(echo $prefix | cut -c-3)"
 }
 
 get_moniker(){
@@ -137,7 +146,7 @@ get_moniker(){
 }
 
 get_peers(){
-    for (( i=0; i<3; i++ )); do
+    for i in 0 1 2; do
         curl -sSL "https://${PREFIX}.terra.dev:26657/status" | \
         awk -vRS=',' -vFS='"' '/id":"/{print $4}; /listen_addr":"[0-9]/{print $4}' |\
         paste -sd "@" -
@@ -171,12 +180,16 @@ create_binary(){
 }
 
 install_prereqs(){
-    if [ $OS == "Linux" ] && [ -n "$(which apt)" ]; then 
-        sudo apt update -y
-        sudo apt install -y build-essential
-    elif [ $OS == "Linux" ] && [ -n "$(which yum)" ]; then
-        sudo yum update -y
-        sudo yum group install -y "Development Tools"
+    if [ $OS = "Linux" ]; then
+        if [ -n "$(which apt)" ]; then 
+            sudo apt update -y
+            sudo apt install -y build-essential
+        elif [ -n "$(which yum)" ]; then
+            sudo yum update -y
+            sudo yum group install -y "Development Tools"
+        else
+            echo "WARNING: You may need to install the gcc compiler"
+        fi
     else
         echo "WARNING: You may need to install the gcc compiler"
     fi
@@ -184,10 +197,14 @@ install_prereqs(){
 
 download_go (){
     local tmpdir=$1
-    if [ $OS == "Linux" ] && [ $PLATFORM == "x86_64" ]; then
-       GO_GZ="go${GO_VERSION}.linux-amd64.tar.gz" 
-    elif [ $OS == "Darwin" ] && [ $PLATFORM == "arm64" ]; then
-       GO_GZ="go${GO_VERSION}.darwin-arm64.tar.gz"
+    if [ $OS = "Linux" ]; then
+        if [ $PLATFORM = "x86_64" ]; then
+            GO_GZ="go${GO_VERSION}.linux-amd64.tar.gz" 
+        elif [ $OS = "Darwin" ] -a [ $PLATFORM = "arm64" ]; then
+            GO_GZ="go${GO_VERSION}.darwin-arm64.tar.gz"
+        else
+            error "Unsupported OS/Platform"
+        fi
     else
         error "Unsupported OS/Platform"
     fi
@@ -227,7 +244,7 @@ init_node(){
     
     # download genesis file
     echo "Downloading genesis file"
-    curl -sSL "${GITHUB_RAW}/genesis/${CHAIN_ID}/genesis.json" -o "${HOME}/.${PREFIX}/config/genesis.json"
+    curl -sSL "${GITHUB_RAW}/${GOA_VERSION}/genesis/${CHAIN_ID}/genesis.json" -o "${HOME}/.${PREFIX}/config/genesis.json"
 
     # get peers list
     echo "Getting peer list"
@@ -313,8 +330,18 @@ display_validate(){
     echo "  --gas-adjustment='1.5' \\"
     echo "  --gas-prices='0.025${DENOM}' \\"
     echo "  --from='${FROMKEY}' \\"
-    echo "  --node='https://${PREFIX}.terra.dev' \\"
+    echo "  --node='https://${PREFIX}.terra.dev:26657' \\"
     echo "  --yes"
+    echo
+}
+
+
+display_upgrade(){
+    echo "####################################################################"
+    echo "# To upgrade to another ${PREFIX}d version using this script:"
+    echo "####################################################################"
+    echo
+    echo $0 --chain-id  ${CHAIN_ID} --version v0.1.0-goa
     echo
 }
 
