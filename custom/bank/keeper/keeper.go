@@ -20,7 +20,7 @@ import (
 )
 
 type Keeper struct {
-	bankkeeper.BaseKeeper
+	*bankkeeper.BaseKeeper
 
 	ak   alliancekeeper.Keeper
 	sk   banktypes.StakingKeeper
@@ -36,8 +36,9 @@ func NewBaseKeeper(
 	paramSpace paramtypes.Subspace,
 	blockedAddrs map[string]bool,
 ) Keeper {
+	bk := bankkeeper.NewBaseKeeper(cdc, storeKey, ak, paramSpace, blockedAddrs)
 	keeper := Keeper{
-		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, paramSpace, blockedAddrs),
+		BaseKeeper: &bk,
 		ak:         alliancekeeper.Keeper{},
 		sk:         stakingkeeper.Keeper{},
 		acck:       ak,
