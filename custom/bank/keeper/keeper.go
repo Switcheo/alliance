@@ -19,7 +19,7 @@ import (
 )
 
 type Keeper struct {
-	bankkeeper.BaseKeeper
+	*bankkeeper.BaseKeeper
 
 	ak   alliancekeeper.Keeper
 	sk   banktypes.StakingKeeper
@@ -35,8 +35,9 @@ func NewBaseKeeper(
 	blockedAddrs map[string]bool,
 	authority string,
 ) Keeper {
+	bk := bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority)
 	keeper := Keeper{
-		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority), // TODO: how to set authority?
+		BaseKeeper: &bk,
 		ak:         alliancekeeper.Keeper{},
 		sk:         stakingkeeper.Keeper{},
 		acck:       ak,
