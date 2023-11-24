@@ -37,7 +37,7 @@ func SubtractDecCoinsWithRounding(d1s sdk.DecCoins, d2s sdk.DecCoins) sdk.DecCoi
 	for _, d2 := range d2s {
 		a1 := d1s.AmountOf(d2.Denom)
 		a2 := d2.Amount
-		if a2.GT(a1) && a2.Sub(a1).LT(sdk.OneDec()) {
+		if a2.GT(a1) && a2.Sub(a1).LT(cosmosmath.LegacyOneDec()) {
 			d1Copy = d1Copy.Sub(sdk.NewDecCoins(sdk.NewDecCoinFromDec(d2.Denom, a1)))
 		} else {
 			d1Copy = d1Copy.Sub(sdk.NewDecCoins(d2))
@@ -46,26 +46,26 @@ func SubtractDecCoinsWithRounding(d1s sdk.DecCoins, d2s sdk.DecCoins) sdk.DecCoi
 	return d1Copy
 }
 
-func (v AllianceValidator) ValidatorSharesWithDenom(denom string) sdk.Dec {
+func (v AllianceValidator) ValidatorSharesWithDenom(denom string) cosmosmath.LegacyDec {
 	// This is used instead of coins.AmountOf to reduce the need for regex matching to speed up the query
 	for _, c := range v.ValidatorShares {
 		if c.Denom == denom {
 			return c.Amount
 		}
 	}
-	return sdk.ZeroDec()
+	return cosmosmath.LegacyZeroDec()
 }
 
-func (v AllianceValidator) TotalDelegationSharesWithDenom(denom string) sdk.Dec {
+func (v AllianceValidator) TotalDelegationSharesWithDenom(denom string) cosmosmath.LegacyDec {
 	return sdk.DecCoins(v.TotalDelegatorShares).AmountOf(denom)
 }
 
-func (v AllianceValidator) TotalTokensWithAsset(asset AllianceAsset) sdk.Dec {
+func (v AllianceValidator) TotalTokensWithAsset(asset AllianceAsset) cosmosmath.LegacyDec {
 	shares := v.ValidatorSharesWithDenom(asset.Denom)
-	dec := ConvertNewShareToDecToken(sdk.NewDecFromInt(asset.TotalTokens), asset.TotalValidatorShares, shares)
+	dec := ConvertNewShareToDecToken(cosmosmath.LegacyNewDecFromInt(asset.TotalTokens), asset.TotalValidatorShares, shares)
 	return dec
 }
 
-func GetValidatorShares(asset AllianceAsset, token cosmosmath.Int) sdk.Dec {
-	return ConvertNewTokenToShares(sdk.NewDecFromInt(asset.TotalTokens), asset.TotalValidatorShares, token)
+func GetValidatorShares(asset AllianceAsset, token cosmosmath.Int) cosmosmath.LegacyDec {
+	return ConvertNewTokenToShares(cosmosmath.LegacyNewDecFromInt(asset.TotalTokens), asset.TotalValidatorShares, token)
 }

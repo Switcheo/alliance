@@ -3,6 +3,8 @@ package keeper
 import (
 	"bytes"
 
+	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/terra-money/alliance/x/alliance/types"
@@ -10,8 +12,11 @@ import (
 
 // CompleteUnbondings Go through all queued undelegations and send the tokens to the delAddrs
 func (k Keeper) CompleteUnbondings(ctx sdk.Context) error {
-	store := ctx.KVStore(k.storeKey)
-	iter := k.IterateUndelegationsByCompletionTime(ctx, ctx.BlockTime())
+	store := k.storeService.OpenKVStore(ctx)
+	iter, err := k.IterateUndelegationsByCompletionTime(ctx, ctx.BlockTime())
+	if err != nil {
+		return err
+	}
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var queued types.QueuedUndelegation
@@ -41,7 +46,11 @@ func (k Keeper) CompleteUnbondings(ctx sdk.Context) error {
 
 	// Burn all "virtual" staking tokens in the module account
 	moduleAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
-	coin := k.bankKeeper.GetBalance(ctx, moduleAddr, k.stakingKeeper.BondDenom(ctx))
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return err
+	}
+	coin := k.bankKeeper.GetBalance(ctx, moduleAddr, bondDenom)
 	if !coin.IsZero() {
 		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
 		if err != nil {
@@ -60,8 +69,8 @@ func (k Keeper) GetUnbondings(
 	delAddr sdk.AccAddress,
 	valAddr sdk.ValAddress,
 ) (unbondingDelegations []types.UnbondingDelegation, err error) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.UndelegationByValidatorIndexKey)
+	store := k.storeService.OpenKVStore(ctx)
+	iter := storetypes.KVStorePrefixIterator(runtime.KVStoreAdapter(store), types.UndelegationByValidatorIndexKey)
 	defer iter.Close()
 	suffix := types.GetPartialUnbondingKeySuffix(denom, delAddr)
 
@@ -92,7 +101,7 @@ func (k Keeper) GetUnbondings(
 		unbondingDelegations = append(unbondingDelegations, unbondDelegation)
 	}
 
-	unbondingDelegations = k.addUnbondingAmounts(ctx, unbondingDelegations, delAddr)
+	unbondingDelegations, err = k.addUnbondingAmounts(ctx, unbondingDelegations, delAddr)
 
 	return unbondingDelegations, err
 }
@@ -105,8 +114,8 @@ func (k Keeper) GetUnbondingsByDenomAndDelegator(
 	denom string,
 	delAddr sdk.AccAddress,
 ) (unbondingDelegations []types.UnbondingDelegation, err error) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.UndelegationByValidatorIndexKey)
+	store := k.storeService.OpenKVStore(ctx)
+	iter := storetypes.KVStorePrefixIterator(runtime.KVStoreAdapter(store), types.UndelegationByValidatorIndexKey)
 	defer iter.Close()
 	suffix := types.GetPartialUnbondingKeySuffix(denom, delAddr)
 
@@ -132,14 +141,17 @@ func (k Keeper) GetUnbondingsByDenomAndDelegator(
 		unbondingDelegations = append(unbondingDelegations, unbondDelegation)
 	}
 
-	unbondingDelegations = k.addUnbondingAmounts(ctx, unbondingDelegations, delAddr)
+	unbondingDelegations, err = k.addUnbondingAmounts(ctx, unbondingDelegations, delAddr)
 
 	return unbondingDelegations, err
 }
 
-func (k Keeper) addUnbondingAmounts(ctx sdk.Context, unbondingDelegations []types.UnbondingDelegation, delAddr sdk.AccAddress) (unbonding []types.UnbondingDelegation) {
+func (k Keeper) addUnbondingAmounts(ctx sdk.Context, unbondingDelegations []types.UnbondingDelegation, delAddr sdk.AccAddress) (unbonding []types.UnbondingDelegation, err error) {
 	for i := 0; i < len(unbondingDelegations); i++ {
-		iter := k.IterateUndelegationsByCompletionTime(ctx, unbondingDelegations[i].CompletionTime)
+		iter, err := k.IterateUndelegationsByCompletionTime(ctx, unbondingDelegations[i].CompletionTime)
+		if err != nil {
+			return unbonding, err
+		}
 		defer iter.Close()
 		for ; iter.Valid(); iter.Next() {
 			var queued types.QueuedUndelegation
@@ -167,5 +179,5 @@ func (k Keeper) addUnbondingAmounts(ctx sdk.Context, unbondingDelegations []type
 		unbonding = append(unbonding, unbondingDelegation)
 	}
 
-	return unbonding
+	return unbonding, err
 }

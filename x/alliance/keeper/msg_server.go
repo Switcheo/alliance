@@ -5,6 +5,7 @@ import (
 
 	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -162,14 +163,18 @@ func (m MsgServer) CreateAlliance(ctx context.Context, msg *types.MsgCreateAllia
 	if found {
 		return nil, types.ErrAlreadyExists
 	}
-	rewardStartTime := sdkCtx.BlockTime().Add(m.RewardDelayTime(sdkCtx))
+	rewardDelayTime, err := m.RewardDelayTime(sdkCtx)
+	if err != nil {
+		return nil, err
+	}
+	rewardStartTime := sdkCtx.BlockTime().Add(rewardDelayTime)
 	asset := types.AllianceAsset{
 		Denom:                msg.Denom,
 		RewardWeight:         msg.RewardWeight,
 		RewardWeightRange:    msg.RewardWeightRange,
 		TakeRate:             msg.TakeRate,
-		TotalTokens:          sdk.ZeroInt(),
-		TotalValidatorShares: sdk.ZeroDec(),
+		TotalTokens:          sdkmath.ZeroInt(),
+		TotalValidatorShares: sdkmath.LegacyZeroDec(),
 		RewardStartTime:      rewardStartTime,
 		RewardChangeRate:     msg.RewardChangeRate,
 		RewardChangeInterval: msg.RewardChangeInterval,

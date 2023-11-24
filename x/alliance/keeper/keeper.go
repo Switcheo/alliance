@@ -7,13 +7,13 @@ import (
 
 	"cosmossdk.io/log"
 
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/core/store"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type Keeper struct {
-	storeKey           storetypes.StoreKey
+	storeService       store.KVStoreService
 	cdc                codec.BinaryCodec
 	accountKeeper      types.AccountKeeper
 	bankKeeper         types.BankKeeper
@@ -25,7 +25,7 @@ type Keeper struct {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	storeService store.KVStoreService,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	stakingKeeper types.StakingKeeper,
@@ -39,7 +39,7 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		storeKey:           storeKey,
+		storeService:       storeService,
 		cdc:                cdc,
 		accountKeeper:      accountKeeper,
 		bankKeeper:         bankKeeper,
@@ -60,10 +60,10 @@ func (k Keeper) StakingHooks() Hooks {
 	}
 }
 
-func (k Keeper) StoreKey() storetypes.StoreKey {
-	return k.storeKey
-}
-
 func (k Keeper) GetAuthority() string {
 	return k.authorityAddr
+}
+
+func (k Keeper) GetStore(ctx sdk.Context) store.KVStore {
+	return k.storeService.OpenKVStore(ctx)
 }

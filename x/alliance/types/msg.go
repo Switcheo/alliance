@@ -2,6 +2,7 @@ package types
 
 import (
 	sdkerrors "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"google.golang.org/grpc/codes"
@@ -56,7 +57,7 @@ func (msg MsgDelegate) Route() string {
 }
 
 func (msg MsgDelegate) ValidateBasic() error {
-	if !msg.Amount.Amount.GT(sdk.ZeroInt()) {
+	if !msg.Amount.Amount.GT(sdkmath.ZeroInt()) {
 		return status.Errorf(codes.InvalidArgument, "Alliance delegation amount must be more than zero")
 	}
 	return nil
@@ -90,7 +91,7 @@ func (msg MsgRedelegate) Route() string {
 }
 
 func (msg MsgRedelegate) ValidateBasic() error {
-	if msg.Amount.Amount.LTE(sdk.ZeroInt()) {
+	if msg.Amount.Amount.LTE(sdkmath.ZeroInt()) {
 		return status.Errorf(codes.InvalidArgument, "Alliance redelegation amount must be more than zero")
 	}
 	return nil
@@ -123,7 +124,7 @@ func (msg MsgUndelegate) Route() string {
 }
 
 func (msg MsgUndelegate) ValidateBasic() error {
-	if msg.Amount.Amount.LTE(sdk.ZeroInt()) {
+	if msg.Amount.Amount.LTE(sdkmath.ZeroInt()) {
 		return status.Errorf(codes.InvalidArgument, "Alliance undelegate amount must be more than zero")
 	}
 	return nil
@@ -213,12 +214,12 @@ func (msg *MsgCreateAlliance) ValidateBasic() error {
 		return err
 	}
 
-	if msg.RewardWeight.IsNil() || msg.RewardWeight.LT(sdk.ZeroDec()) {
+	if msg.RewardWeight.IsNil() || msg.RewardWeight.LT(sdkmath.LegacyZeroDec()) {
 		return status.Errorf(codes.InvalidArgument, "Alliance rewardWeight must be zero or a positive number")
 	}
 
-	if msg.RewardWeightRange.Min.IsNil() || msg.RewardWeightRange.Min.LT(sdk.ZeroDec()) ||
-		msg.RewardWeightRange.Max.IsNil() || msg.RewardWeightRange.Max.LT(sdk.ZeroDec()) {
+	if msg.RewardWeightRange.Min.IsNil() || msg.RewardWeightRange.Min.LT(sdkmath.LegacyZeroDec()) ||
+		msg.RewardWeightRange.Max.IsNil() || msg.RewardWeightRange.Max.LT(sdkmath.LegacyZeroDec()) {
 		return status.Errorf(codes.InvalidArgument, "Alliance rewardWeight min and max must be zero or a positive number")
 	}
 
@@ -230,7 +231,7 @@ func (msg *MsgCreateAlliance) ValidateBasic() error {
 		return status.Errorf(codes.InvalidArgument, "Alliance rewardWeight must be bounded in RewardWeightRange")
 	}
 
-	if msg.TakeRate.IsNil() || msg.TakeRate.IsNegative() || msg.TakeRate.GTE(sdk.OneDec()) {
+	if msg.TakeRate.IsNil() || msg.TakeRate.IsNegative() || msg.TakeRate.GTE(sdkmath.LegacyZeroDec()) {
 		return status.Errorf(codes.InvalidArgument, "Alliance takeRate must be more or equals to 0 but strictly less than 1")
 	}
 
@@ -272,11 +273,11 @@ func (msg *MsgUpdateAlliance) ValidateBasic() error {
 		return status.Errorf(codes.InvalidArgument, "Alliance denom must have a value")
 	}
 
-	if msg.RewardWeight.IsNil() || msg.RewardWeight.LT(sdk.ZeroDec()) {
+	if msg.RewardWeight.IsNil() || msg.RewardWeight.LT(sdkmath.LegacyZeroDec()) {
 		return status.Errorf(codes.InvalidArgument, "Alliance rewardWeight must be zero or a positive number")
 	}
 
-	if msg.TakeRate.IsNil() || msg.TakeRate.IsNegative() || msg.TakeRate.GTE(sdk.OneDec()) {
+	if msg.TakeRate.IsNil() || msg.TakeRate.IsNegative() || msg.TakeRate.GTE(sdkmath.LegacyZeroDec()) {
 		return status.Errorf(codes.InvalidArgument, "Alliance takeRate must be more or equals to 0 but strictly less than 1")
 	}
 

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	cosmoserrors "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -36,7 +37,6 @@ import (
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
@@ -59,7 +59,7 @@ func Setup(t *testing.T) *App {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000000000000))),
 	}
 
 	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
@@ -83,7 +83,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(
-		abci.RequestInitChain{
+		&abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: simtestutil.DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
@@ -92,12 +92,12 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 
 	// commit genesis changes
 	app.Commit()
-	app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
+	app.FinalizeBlock(&abci.RequestFinalizeBlock{
 		Height:             app.LastBlockHeight() + 1,
-		AppHash:            app.LastCommitID().Hash,
-		ValidatorsHash:     valSet.Hash(),
+		Hash:               app.LastCommitID().Hash,
+		ProposerAddress:    valSet.Hash(),
 		NextValidatorsHash: valSet.Hash(),
-	}})
+	})
 
 	return app
 }
@@ -266,7 +266,7 @@ func RegisterNewValidator(t *testing.T, app *App, ctx sdk.Context, val stakingty
 	app.StakingKeeper.SetValidator(ctx, val)
 	app.StakingKeeper.SetValidatorByConsAddr(ctx, val) //nolint:errcheck
 	app.StakingKeeper.SetNewValidatorByPowerIndex(ctx, val)
-	err := app.StakingKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
+	err := app.StakingKeeper.Hooks().AfterValidatorCreated(ctx, []byte(val.GetOperator()))
 	require.NoError(t, err)
 }
 

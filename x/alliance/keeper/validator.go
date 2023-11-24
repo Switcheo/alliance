@@ -1,16 +1,19 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
+	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/terra-money/alliance/x/alliance/types"
 )
 
-func (k Keeper) GetAllianceValidator(ctx sdk.Context, valAddr sdk.ValAddress) (types.AllianceValidator, error) {
-	val, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
+func (k Keeper) GetAllianceValidator(ctx context.Context, valAddr sdk.ValAddress) (types.AllianceValidator, error) {
+	val, err := k.stakingKeeper.GetValidator(ctx, valAddr)
+	if err != nil {
 		return types.AllianceValidator{}, fmt.Errorf("validator with address %s does not exist", valAddr.String())
 	}
 	valInfo, found := k.GetAllianceValidatorInfo(ctx, valAddr)
@@ -23,11 +26,14 @@ func (k Keeper) GetAllianceValidator(ctx sdk.Context, valAddr sdk.ValAddress) (t
 	}, nil
 }
 
-func (k Keeper) GetAllianceValidatorInfo(ctx sdk.Context, valAddr sdk.ValAddress) (types.AllianceValidatorInfo, bool) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) GetAllianceValidatorInfo(ctx context.Context, valAddr sdk.ValAddress) (types.AllianceValidatorInfo, bool) {
+	store := k.storeService.OpenKVStore(ctx)
 	key := types.GetAllianceValidatorInfoKey(valAddr)
-	vb := store.Get(key)
+	vb, err := store.Get(key)
 	var info types.AllianceValidatorInfo
+	if err != nil {
+		return info, false
+	}
 	if vb == nil {
 		return info, false
 	}
@@ -35,8 +41,8 @@ func (k Keeper) GetAllianceValidatorInfo(ctx sdk.Context, valAddr sdk.ValAddress
 	return info, true
 }
 
-func (k Keeper) createAllianceValidatorInfo(ctx sdk.Context, valAddr sdk.ValAddress) (val types.AllianceValidatorInfo) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) createAllianceValidatorInfo(ctx context.Context, valAddr sdk.ValAddress) (val types.AllianceValidatorInfo) {
+	store := k.storeService.OpenKVStore(ctx)
 	key := types.GetAllianceValidatorInfoKey(valAddr)
 	val = types.NewAllianceValidatorInfo()
 	vb := k.cdc.MustMarshal(&val)
@@ -45,8 +51,8 @@ func (k Keeper) createAllianceValidatorInfo(ctx sdk.Context, valAddr sdk.ValAddr
 }
 
 func (k Keeper) IterateAllianceValidatorInfo(ctx sdk.Context, cb func(valAddr sdk.ValAddress, info types.AllianceValidatorInfo) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.ValidatorInfoKey)
+	store := k.storeService.OpenKVStore(ctx)
+	iter := storetypes.KVStorePrefixIterator(runtime.KVStoreAdapter(store), types.ValidatorInfoKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var info types.AllianceValidatorInfo
@@ -60,8 +66,8 @@ func (k Keeper) IterateAllianceValidatorInfo(ctx sdk.Context, cb func(valAddr sd
 }
 
 func (k Keeper) GetAllAllianceValidatorInfo(ctx sdk.Context) []types.AllianceValidatorInfo {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.ValidatorInfoKey)
+	store := k.storeService.OpenKVStore(ctx)
+	iter := storetypes.KVStorePrefixIterator(runtime.KVStoreAdapter(store), types.ValidatorInfoKey)
 	defer iter.Close()
 	var infos []types.AllianceValidatorInfo
 	for ; iter.Valid(); iter.Next() {
@@ -73,8 +79,8 @@ func (k Keeper) GetAllAllianceValidatorInfo(ctx sdk.Context) []types.AllianceVal
 	return infos
 }
 
-func (k Keeper) DeleteValidatorInfo(ctx sdk.Context, valAddr sdk.ValAddress) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) DeleteValidatorInfo(ctx context.Context, valAddr sdk.ValAddress) {
+	store := k.storeService.OpenKVStore(ctx)
 	key := types.GetAllianceValidatorInfoKey(valAddr)
 	store.Delete(key)
 }

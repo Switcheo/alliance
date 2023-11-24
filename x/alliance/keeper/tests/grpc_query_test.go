@@ -7,6 +7,7 @@ import (
 	teststaking "github.com/cosmos/cosmos-sdk/x/staking/testutil"
 
 	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -16,6 +17,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	test_helpers "github.com/terra-money/alliance/app"
 	"github.com/terra-money/alliance/x/alliance/keeper"
 	"github.com/terra-money/alliance/x/alliance/types"
@@ -33,17 +35,17 @@ func TestQueryAlliances(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:             AllianceDenom,
-				RewardWeight:      sdk.NewDec(2),
-				RewardWeightRange: types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(5)},
-				TakeRate:          sdk.NewDec(0),
-				TotalTokens:       sdk.ZeroInt(),
+				RewardWeight:      sdkmath.LegacyNewDec(2),
+				RewardWeightRange: types.RewardWeightRange{Min: sdkmath.LegacyNewDec(0), Max: sdkmath.LegacyNewDec(5)},
+				TakeRate:          sdkmath.LegacyNewDec(0),
+				TotalTokens:       sdkmath.ZeroInt(),
 			},
 			{
 				Denom:             AllianceDenomTwo,
-				RewardWeight:      sdk.NewDec(10),
-				RewardWeightRange: types.RewardWeightRange{Min: sdk.NewDec(2), Max: sdk.NewDec(12)},
-				TakeRate:          sdk.MustNewDecFromStr("0.14159265359"),
-				TotalTokens:       sdk.ZeroInt(),
+				RewardWeight:      sdkmath.LegacyNewDec(10),
+				RewardWeightRange: types.RewardWeightRange{Min: sdkmath.LegacyNewDec(2), Max: sdkmath.LegacyNewDec(12)},
+				TakeRate:          sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+				TotalTokens:       sdkmath.ZeroInt(),
 			},
 		},
 	})
@@ -58,22 +60,22 @@ func TestQueryAlliances(t *testing.T) {
 		Alliances: []types.AllianceAsset{
 			{
 				Denom:                "alliance",
-				RewardWeight:         sdk.NewDec(2),
-				RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(5)},
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(0), Max: sdkmath.LegacyNewDec(5)},
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 			{
 				Denom:                "alliance2",
-				RewardWeight:         sdk.NewDec(10),
-				RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(2), Max: sdk.NewDec(12)},
-				TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(10),
+				RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(2), Max: sdkmath.LegacyNewDec(12)},
+				TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
@@ -94,20 +96,20 @@ func TestQueryAnUniqueAlliance(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                AllianceDenom,
-				RewardWeight:         sdk.NewDec(2),
-				RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(5)},
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(0), Max: sdkmath.LegacyNewDec(5)},
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 			{
 				Denom:                AllianceDenomTwo,
-				RewardWeight:         sdk.NewDec(10),
-				RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(2), Max: sdk.NewDec(12)},
-				TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-				TotalTokens:          sdk.ZeroInt(),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(10),
+				RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(2), Max: sdkmath.LegacyNewDec(12)},
+				TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+				TotalTokens:          sdkmath.ZeroInt(),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
@@ -124,12 +126,12 @@ func TestQueryAnUniqueAlliance(t *testing.T) {
 	require.Equal(t, &types.QueryAllianceResponse{
 		Alliance: &types.AllianceAsset{
 			Denom:                "alliance2",
-			RewardWeight:         sdk.NewDec(10),
-			RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(2), Max: sdk.NewDec(12)},
-			TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-			TotalTokens:          sdk.ZeroInt(),
-			TotalValidatorShares: sdk.NewDec(0),
-			RewardChangeRate:     sdk.NewDec(0),
+			RewardWeight:         sdkmath.LegacyNewDec(10),
+			RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(2), Max: sdkmath.LegacyNewDec(12)},
+			TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+			TotalTokens:          sdkmath.ZeroInt(),
+			TotalValidatorShares: sdkmath.LegacyNewDec(0),
+			RewardChangeRate:     sdkmath.LegacyNewDec(0),
 			RewardChangeInterval: 0,
 		},
 	}, alliances)
@@ -145,11 +147,11 @@ func TestQueryAnUniqueIBCAlliance(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                "ibc/" + AllianceDenomTwo,
-				RewardWeight:         sdk.NewDec(10),
-				RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(2), Max: sdk.NewDec(12)},
-				TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-				TotalTokens:          sdk.ZeroInt(),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(10),
+				RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(2), Max: sdkmath.LegacyNewDec(12)},
+				TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+				TotalTokens:          sdkmath.ZeroInt(),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
@@ -169,12 +171,12 @@ func TestQueryAnUniqueIBCAlliance(t *testing.T) {
 	require.Equal(t, &types.QueryAllianceResponse{
 		Alliance: &types.AllianceAsset{
 			Denom:                "ibc/alliance2",
-			RewardWeight:         sdk.NewDec(10),
-			RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(2), Max: sdk.NewDec(12)},
-			TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-			TotalTokens:          sdk.ZeroInt(),
-			TotalValidatorShares: sdk.NewDec(0),
-			RewardChangeRate:     sdk.NewDec(0),
+			RewardWeight:         sdkmath.LegacyNewDec(10),
+			RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(2), Max: sdkmath.LegacyNewDec(12)},
+			TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+			TotalTokens:          sdkmath.ZeroInt(),
+			TotalValidatorShares: sdkmath.LegacyNewDec(0),
+			RewardChangeRate:     sdkmath.LegacyNewDec(0),
 			RewardChangeInterval: 0,
 		},
 	}, alliances)
@@ -183,12 +185,12 @@ func TestQueryAnUniqueIBCAlliance(t *testing.T) {
 	require.Equal(t, &types.QueryAllianceResponse{
 		Alliance: &types.AllianceAsset{
 			Denom:                "ibc/alliance2",
-			RewardWeight:         sdk.NewDec(10),
-			RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(2), Max: sdk.NewDec(12)},
-			TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-			TotalTokens:          sdk.ZeroInt(),
-			TotalValidatorShares: sdk.NewDec(0),
-			RewardChangeRate:     sdk.NewDec(0),
+			RewardWeight:         sdkmath.LegacyNewDec(10),
+			RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(2), Max: sdkmath.LegacyNewDec(12)},
+			TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+			TotalTokens:          sdkmath.ZeroInt(),
+			TotalValidatorShares: sdkmath.LegacyNewDec(0),
+			RewardChangeRate:     sdkmath.LegacyNewDec(0),
 			RewardChangeInterval: 0,
 		},
 	}, alliancesIbcEndpoint)
@@ -239,10 +241,10 @@ func TestQueryParams(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                AllianceDenom,
-				RewardWeight:         sdk.NewDec(2),
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
@@ -280,28 +282,30 @@ func TestClaimQueryReward(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                ULunaAlliance,
-				RewardWeight:         sdk.NewDec(2),
-				TakeRate:             sdk.MustNewDecFromStr("0.00005"),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.00005"),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
 	})
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
 	feeCollectorAddr := app.AccountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
+
 	valAddr, _ := sdk.ValAddressFromBech32(delegations[0].ValidatorAddress)
 	val1, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
-	delAddr := test_helpers.AddTestAddrsIncremental(app, ctx, 1, sdk.NewCoins(sdk.NewCoin(ULunaAlliance, sdk.NewInt(1000_000_000))))[0]
+	delAddr := test_helpers.AddTestAddrsIncremental(app, ctx, 1, sdk.NewCoins(sdk.NewCoin(ULunaAlliance, sdkmath.NewInt(1000_000_000))))[0]
 
 	// WHEN: DELEGATING ...
-	delRes, delErr := app.AllianceKeeper.Delegate(ctx, delAddr, val1, sdk.NewCoin(ULunaAlliance, sdk.NewInt(1000_000_000)))
+	delRes, delErr := app.AllianceKeeper.Delegate(ctx, delAddr, val1, sdk.NewCoin(ULunaAlliance, sdkmath.NewInt(1000_000_000)))
 	require.Nil(t, delErr)
-	require.Equal(t, sdk.NewDec(1000000000), *delRes)
+	require.Equal(t, sdkmath.LegacyNewDec(1000000000), *delRes)
 	assets := app.AllianceKeeper.GetAllAssets(ctx)
-	err := app.AllianceKeeper.RebalanceBondTokenWeights(ctx, assets)
+	err = app.AllianceKeeper.RebalanceBondTokenWeights(ctx, assets)
 	require.NoError(t, err)
 
 	// ...and advance block...
@@ -312,7 +316,9 @@ func TestClaimQueryReward(t *testing.T) {
 	require.NoError(t, err)
 
 	app.BankKeeper.GetAllBalances(ctx, feeCollectorAddr)
-	require.Equal(t, startTime.Add(time.Minute*5), app.AllianceKeeper.LastRewardClaimTime(ctx))
+	lastRewardClaimTime, err := app.AllianceKeeper.LastRewardClaimTime(ctx)
+	require.NoError(t, err)
+	require.Equal(t, startTime.Add(time.Minute*5), lastRewardClaimTime)
 	app.AllianceKeeper.GetAssetByDenom(ctx, ULunaAlliance)
 
 	// ... at the next begin block, tokens will be distributed from the fee pool...
@@ -323,7 +329,7 @@ func TestClaimQueryReward(t *testing.T) {
 				Address: cons,
 				Power:   1,
 			},
-			SignedLastBlock: true,
+			BlockIdFlag: cmtproto.BlockIDFlagCommit,
 		},
 	})
 
@@ -356,27 +362,28 @@ func TestQueryAllianceDelegation(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                AllianceDenom,
-				RewardWeight:         sdk.NewDec(2),
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
 	})
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	valAddr, _ := sdk.ValAddressFromBech32(delegations[0].ValidatorAddress)
 	val, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
-	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
 	// WHEN: DELEGATING AND QUERYING ...
-	delegationTxRes, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdk.NewInt(1000_000)))
+	delegationTxRes, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdkmath.NewInt(1000_000)))
 	queryDelegation, queryErr := queryServer.AllianceDelegation(ctx, &types.QueryAllianceDelegationRequest{
 		DelegatorAddr: delAddr.String(),
 		ValidatorAddr: val.OperatorAddress,
@@ -392,17 +399,17 @@ func TestQueryAllianceDelegation(t *testing.T) {
 				DelegatorAddress:      delAddr.String(),
 				ValidatorAddress:      val.OperatorAddress,
 				Denom:                 AllianceDenom,
-				Shares:                sdk.NewDec(1000_000),
+				Shares:                sdkmath.LegacyNewDec(1000_000),
 				RewardHistory:         nil,
 				LastRewardClaimHeight: uint64(ctx.BlockHeight()),
 			},
 			Balance: sdk.Coin{
 				Denom:  AllianceDenom,
-				Amount: sdk.NewInt(1000_000),
+				Amount: sdkmath.NewInt(1000_000),
 			},
 		},
 	}, queryDelegation)
-	require.Equal(t, sdk.NewDec(1000000), *delegationTxRes)
+	require.Equal(t, sdkmath.LegacyNewDec(1000000), *delegationTxRes)
 }
 
 func TestQueryAllianceDelegationNotFound(t *testing.T) {
@@ -410,14 +417,15 @@ func TestQueryAllianceDelegationNotFound(t *testing.T) {
 	app, ctx := createTestContext(t)
 	startTime := time.Now()
 	ctx = ctx.WithBlockTime(startTime).WithBlockHeight(1)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	valAddr, _ := sdk.ValAddressFromBech32(delegations[0].ValidatorAddress)
 	val, _ := app.StakingKeeper.GetValidator(ctx, valAddr)
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
 
 	// WHEN: QUERYING ...
-	_, err := queryServer.AllianceDelegation(ctx, &types.QueryAllianceDelegationRequest{
+	_, err = queryServer.AllianceDelegation(ctx, &types.QueryAllianceDelegationRequest{
 		DelegatorAddr: delAddr.String(),
 		ValidatorAddr: val.OperatorAddress,
 		Denom:         AllianceDenom,
@@ -432,12 +440,13 @@ func TestQueryAllianceValidatorNotFound(t *testing.T) {
 	app, ctx := createTestContext(t)
 	startTime := time.Now()
 	ctx = ctx.WithBlockTime(startTime).WithBlockHeight(1)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
 
 	// WHEN: QUERYING ...
-	_, err := queryServer.AllianceDelegation(ctx, &types.QueryAllianceDelegationRequest{
+	_, err = queryServer.AllianceDelegation(ctx, &types.QueryAllianceDelegationRequest{
 		DelegatorAddr: delAddr.String(),
 		ValidatorAddr: "cosmosvaloper19lss6zgdh5vvcpjhfftdghrpsw7a4434elpwpu",
 		Denom:         AllianceDenom,
@@ -457,27 +466,28 @@ func TestQueryAlliancesDelegationByValidator(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                AllianceDenom,
-				RewardWeight:         sdk.NewDec(2),
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
 	})
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	valAddr, _ := sdk.ValAddressFromBech32(delegations[0].ValidatorAddress)
 	val, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
-	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
 	// WHEN: DELEGATING AND QUERYING ...
-	delegationTxRes, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdk.NewInt(1000_000)))
+	delegationTxRes, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdkmath.NewInt(1000_000)))
 	queryDelegation, queryErr := queryServer.AlliancesDelegationByValidator(ctx, &types.QueryAlliancesDelegationByValidatorRequest{
 		DelegatorAddr: delAddr.String(),
 		ValidatorAddr: val.OperatorAddress,
@@ -493,13 +503,13 @@ func TestQueryAlliancesDelegationByValidator(t *testing.T) {
 					DelegatorAddress:      delAddr.String(),
 					ValidatorAddress:      val.OperatorAddress,
 					Denom:                 AllianceDenom,
-					Shares:                sdk.NewDec(1000_000),
+					Shares:                sdkmath.LegacyNewDec(1000_000),
 					RewardHistory:         nil,
 					LastRewardClaimHeight: uint64(ctx.BlockHeight()),
 				},
 				Balance: sdk.Coin{
 					Denom:  AllianceDenom,
-					Amount: sdk.NewInt(1000_000),
+					Amount: sdkmath.NewInt(1000_000),
 				},
 			},
 		},
@@ -508,7 +518,7 @@ func TestQueryAlliancesDelegationByValidator(t *testing.T) {
 			Total:   1,
 		},
 	}, queryDelegation)
-	require.Equal(t, sdk.NewDec(1000_000), *delegationTxRes)
+	require.Equal(t, sdkmath.LegacyNewDec(1000_000), *delegationTxRes)
 }
 
 func TestQueryAlliancesDelegationByValidatorNotFound(t *testing.T) {
@@ -516,12 +526,13 @@ func TestQueryAlliancesDelegationByValidatorNotFound(t *testing.T) {
 	app, ctx := createTestContext(t)
 	startTime := time.Now()
 	ctx = ctx.WithBlockTime(startTime).WithBlockHeight(1)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
 
 	// WHEN: QUERYING ...
-	_, err := queryServer.AlliancesDelegationByValidator(ctx, &types.QueryAlliancesDelegationByValidatorRequest{
+	_, err = queryServer.AlliancesDelegationByValidator(ctx, &types.QueryAlliancesDelegationByValidatorRequest{
 		DelegatorAddr: delAddr.String(),
 		ValidatorAddr: "cosmosvaloper19lss6zgdh5vvcpjhfftdghrpsw7a4434elpwpu",
 	})
@@ -540,44 +551,45 @@ func TestQueryAlliancesAlliancesDelegation(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                AllianceDenom,
-				RewardWeight:         sdk.NewDec(2),
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 			{
 				Denom:                AllianceDenomTwo,
-				RewardWeight:         sdk.NewDec(10),
-				TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(10),
+				TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
 	})
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	valAddr, _ := sdk.ValAddressFromBech32(delegations[0].ValidatorAddress)
 	val, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
-	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
 	// WHEN: DELEGATING AND QUERYING ...
-	delegationTxRes, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdk.NewInt(1000_000)))
-	delegation2TxRes, tx2Err := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(1000_000)))
+	delegationTxRes, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdkmath.NewInt(1000_000)))
+	delegation2TxRes, tx2Err := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(1000_000)))
 	queryDelegation, queryErr := queryServer.AlliancesDelegation(ctx, &types.QueryAlliancesDelegationsRequest{
 		DelegatorAddr: delAddr.String(),
 	})
@@ -593,13 +605,13 @@ func TestQueryAlliancesAlliancesDelegation(t *testing.T) {
 					DelegatorAddress:      delAddr.String(),
 					ValidatorAddress:      val.OperatorAddress,
 					Denom:                 AllianceDenom,
-					Shares:                sdk.NewDec(1000_000),
+					Shares:                sdkmath.LegacyNewDec(1000_000),
 					RewardHistory:         nil,
 					LastRewardClaimHeight: uint64(ctx.BlockHeight()),
 				},
 				Balance: sdk.Coin{
 					Denom:  AllianceDenom,
-					Amount: sdk.NewInt(1000_000),
+					Amount: sdkmath.NewInt(1000_000),
 				},
 			},
 			{
@@ -607,13 +619,13 @@ func TestQueryAlliancesAlliancesDelegation(t *testing.T) {
 					DelegatorAddress:      delAddr.String(),
 					ValidatorAddress:      val.OperatorAddress,
 					Denom:                 AllianceDenomTwo,
-					Shares:                sdk.NewDec(1000_000),
+					Shares:                sdkmath.LegacyNewDec(1000_000),
 					RewardHistory:         nil,
 					LastRewardClaimHeight: uint64(ctx.BlockHeight()),
 				},
 				Balance: sdk.Coin{
 					Denom:  AllianceDenomTwo,
-					Amount: sdk.NewInt(1000_000),
+					Amount: sdkmath.NewInt(1000_000),
 				},
 			},
 		},
@@ -622,8 +634,8 @@ func TestQueryAlliancesAlliancesDelegation(t *testing.T) {
 			Total:   2,
 		},
 	}, queryDelegation)
-	require.Equal(t, sdk.NewDec(1000_000), *delegationTxRes)
-	require.Equal(t, sdk.NewDec(1000_000), *delegation2TxRes)
+	require.Equal(t, sdkmath.LegacyNewDec(1000_000), *delegationTxRes)
+	require.Equal(t, sdkmath.LegacyNewDec(1000_000), *delegation2TxRes)
 }
 
 func TestQueryAllDelegations(t *testing.T) {
@@ -636,45 +648,46 @@ func TestQueryAllDelegations(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                AllianceDenom,
-				RewardWeight:         sdk.NewDec(2),
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 			{
 				Denom:                AllianceDenomTwo,
-				RewardWeight:         sdk.NewDec(10),
-				TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(10),
+				TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
 	})
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	valAddr, _ := sdk.ValAddressFromBech32(delegations[0].ValidatorAddress)
 	val, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
-	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
 	// WHEN: DELEGATING AND QUERYING ...
-	_, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdk.NewInt(1000_000)))
+	_, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdkmath.NewInt(1000_000)))
 	require.NoError(t, txErr)
-	_, tx2Err := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(1000_000)))
+	_, tx2Err := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(1000_000)))
 	require.NoError(t, tx2Err)
 	queryDelegations, queryErr := queryServer.AllAlliancesDelegations(ctx, &types.QueryAllAlliancesDelegationsRequest{
 		Pagination: &query.PageRequest{
@@ -693,13 +706,13 @@ func TestQueryAllDelegations(t *testing.T) {
 			DelegatorAddress:      delAddr.String(),
 			ValidatorAddress:      val.OperatorAddress,
 			Denom:                 AllianceDenom,
-			Shares:                sdk.NewDec(1000_000),
+			Shares:                sdkmath.LegacyNewDec(1000_000),
 			RewardHistory:         nil,
 			LastRewardClaimHeight: uint64(ctx.BlockHeight()),
 		},
 		Balance: sdk.Coin{
 			Denom:  AllianceDenom,
-			Amount: sdk.NewInt(1000_000),
+			Amount: sdkmath.NewInt(1000_000),
 		},
 	}, queryDelegations.Delegations[0])
 
@@ -718,13 +731,13 @@ func TestQueryAllDelegations(t *testing.T) {
 			DelegatorAddress:      delAddr.String(),
 			ValidatorAddress:      val.OperatorAddress,
 			Denom:                 AllianceDenomTwo,
-			Shares:                sdk.NewDec(1000_000),
+			Shares:                sdkmath.LegacyNewDec(1000_000),
 			RewardHistory:         nil,
 			LastRewardClaimHeight: uint64(ctx.BlockHeight()),
 		},
 		Balance: sdk.Coin{
 			Denom:  AllianceDenomTwo,
-			Amount: sdk.NewInt(1000_000),
+			Amount: sdkmath.NewInt(1000_000),
 		},
 	}, queryDelegations.Delegations[0])
 }
@@ -739,65 +752,67 @@ func TestQueryValidator(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                AllianceDenom,
-				RewardWeight:         sdk.NewDec(2),
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 			{
 				Denom:                AllianceDenomTwo,
-				RewardWeight:         sdk.NewDec(10),
-				TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(10),
+				TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
 	})
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
+
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	valAddr, _ := sdk.ValAddressFromBech32(delegations[0].ValidatorAddress)
 	val, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
-	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
 	// WHEN: DELEGATING AND QUERYING ...
-	_, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdk.NewInt(1000_000)))
+	_, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdkmath.NewInt(1000_000)))
 	require.NoError(t, txErr)
-	_, tx2Err := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(1000_000)))
+	_, tx2Err := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(1000_000)))
 	require.NoError(t, tx2Err)
 
 	queryVal, queryErr := queryServer.AllianceValidator(ctx, &types.QueryAllianceValidatorRequest{
-		ValidatorAddr: val.GetOperator().String(),
+		ValidatorAddr: val.GetOperator(),
 	})
 
 	require.NoError(t, queryErr)
 	require.Equal(t, &types.QueryAllianceValidatorResponse{
-		ValidatorAddr: val.GetOperator().String(),
+		ValidatorAddr: val.GetOperator(),
 		TotalDelegationShares: sdk.NewDecCoins(
-			sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000000)),
-			sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000000)),
+			sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000000)),
+			sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000000)),
 		),
 		ValidatorShares: sdk.NewDecCoins(
-			sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000000)),
-			sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000000)),
+			sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000000)),
+			sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000000)),
 		),
 		TotalStaked: sdk.NewDecCoins(
-			sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000_000)),
-			sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000_000)),
+			sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000_000)),
+			sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000_000)),
 		),
 	}, queryVal)
 }
@@ -812,33 +827,35 @@ func TestQueryValidators(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                AllianceDenom,
-				RewardWeight:         sdk.NewDec(2),
-				TakeRate:             sdk.NewDec(0),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				TakeRate:             sdkmath.LegacyNewDec(0),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 			{
 				Denom:                AllianceDenomTwo,
-				RewardWeight:         sdk.NewDec(10),
-				TakeRate:             sdk.MustNewDecFromStr("0.14159265359"),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(10),
+				TakeRate:             sdkmath.LegacyMustNewDecFromStr("0.14159265359"),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
 	})
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
-	delegations := app.StakingKeeper.GetAllDelegations(ctx)
+	delegations, err := app.StakingKeeper.GetAllDelegations(ctx)
+	require.NoError(t, err)
+
 	delAddr, _ := sdk.AccAddressFromBech32(delegations[0].DelegatorAddress)
 	valAddr, _ := sdk.ValAddressFromBech32(delegations[0].ValidatorAddress)
 	val, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
 
 	addrs := test_helpers.AddTestAddrsIncremental(app, ctx, 3, sdk.NewCoins(
-		sdk.NewCoin(AllianceDenom, sdk.NewInt(1000_000)),
-		sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(1000_000)),
+		sdk.NewCoin(AllianceDenom, sdkmath.NewInt(1000_000)),
+		sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(1000_000)),
 	))
 	valAddr2 := sdk.ValAddress(addrs[0])
 	_val2 := teststaking.NewValidator(t, valAddr2, test_helpers.CreateTestPubKeys(1)[0])
@@ -846,22 +863,22 @@ func TestQueryValidators(t *testing.T) {
 	val2, err := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr2)
 	require.NoError(t, err)
 
-	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenom, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(2000_000))))
+	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, delAddr, sdk.NewCoins(sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(2000_000))))
 	require.NoError(t, err)
 
 	// WHEN: DELEGATING AND QUERYING ...
-	_, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdk.NewInt(1000_000)))
+	_, txErr := app.AllianceKeeper.Delegate(ctx, delAddr, val, sdk.NewCoin(AllianceDenom, sdkmath.NewInt(1000_000)))
 	require.NoError(t, txErr)
-	_, tx2Err := app.AllianceKeeper.Delegate(ctx, delAddr, val2, sdk.NewCoin(AllianceDenomTwo, sdk.NewInt(1000_000)))
+	_, tx2Err := app.AllianceKeeper.Delegate(ctx, delAddr, val2, sdk.NewCoin(AllianceDenomTwo, sdkmath.NewInt(1000_000)))
 	require.NoError(t, tx2Err)
 
 	queryVal, queryErr := queryServer.AllAllianceValidators(ctx, &types.QueryAllAllianceValidatorsRequest{
@@ -876,19 +893,19 @@ func TestQueryValidators(t *testing.T) {
 
 	require.NoError(t, queryErr)
 	// Order in which validators are returned is not deterministic since we randomly generate validator addresses
-	if queryVal.Validators[0].ValidatorAddr == val.GetOperator().String() {
+	if queryVal.Validators[0].ValidatorAddr == val.GetOperator() {
 		require.Equal(t, &types.QueryAllianceValidatorsResponse{
 			Validators: []types.QueryAllianceValidatorResponse{
 				{
-					ValidatorAddr: val.GetOperator().String(),
+					ValidatorAddr: val.GetOperator(),
 					TotalDelegationShares: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000000)),
+						sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000000)),
 					),
 					ValidatorShares: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000000)),
+						sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000000)),
 					),
 					TotalStaked: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000_000)),
+						sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000_000)),
 					),
 				},
 			},
@@ -898,15 +915,15 @@ func TestQueryValidators(t *testing.T) {
 		require.Equal(t, &types.QueryAllianceValidatorsResponse{
 			Validators: []types.QueryAllianceValidatorResponse{
 				{
-					ValidatorAddr: val2.GetOperator().String(),
+					ValidatorAddr: val2.GetOperator(),
 					TotalDelegationShares: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000000)),
+						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000000)),
 					),
 					ValidatorShares: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000000)),
+						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000000)),
 					),
 					TotalStaked: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000_000)),
+						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000_000)),
 					),
 				},
 			},
@@ -926,19 +943,19 @@ func TestQueryValidators(t *testing.T) {
 
 	require.NoError(t, queryErr)
 	// Order in which validators are returned is not deterministic since we randomly generate validator addresses
-	if queryVal2.Validators[0].ValidatorAddr == val.GetOperator().String() {
+	if queryVal2.Validators[0].ValidatorAddr == val.GetOperator() {
 		require.Equal(t, &types.QueryAllianceValidatorsResponse{
 			Validators: []types.QueryAllianceValidatorResponse{
 				{
-					ValidatorAddr: val.GetOperator().String(),
+					ValidatorAddr: val.GetOperator(),
 					TotalDelegationShares: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000000)),
+						sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000000)),
 					),
 					ValidatorShares: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000000)),
+						sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000000)),
 					),
 					TotalStaked: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenom, sdk.NewDec(1000_000)),
+						sdk.NewDecCoinFromDec(AllianceDenom, sdkmath.LegacyNewDec(1000_000)),
 					),
 				},
 			},
@@ -948,15 +965,15 @@ func TestQueryValidators(t *testing.T) {
 		require.Equal(t, &types.QueryAllianceValidatorsResponse{
 			Validators: []types.QueryAllianceValidatorResponse{
 				{
-					ValidatorAddr: val2.GetOperator().String(),
+					ValidatorAddr: val2.GetOperator(),
 					TotalDelegationShares: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000000)),
+						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000000)),
 					),
 					ValidatorShares: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000000)),
+						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000000)),
 					),
 					TotalStaked: sdk.NewDecCoins(
-						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdk.NewDec(1000_000)),
+						sdk.NewDecCoinFromDec(AllianceDenomTwo, sdkmath.LegacyNewDec(1000_000)),
 					),
 				},
 			},

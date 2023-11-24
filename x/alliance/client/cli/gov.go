@@ -3,6 +3,7 @@ package cli
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,31 +36,11 @@ func CreateAlliance() *cobra.Command {
 
 			denom := args[0]
 
-			rewardWeight, err := sdk.NewDecFromStr(args[1])
-			if err != nil {
-				return err
-			}
-
-			rewardWeightMin, err := sdk.NewDecFromStr(args[2])
-			if err != nil {
-				return err
-			}
-
-			rewardWeightMax, err := sdk.NewDecFromStr(args[3])
-			if err != nil {
-				return err
-			}
-
-			takeRate, err := sdk.NewDecFromStr(args[4])
-			if err != nil {
-				return err
-			}
-
-			rewardChangeRate, err := sdk.NewDecFromStr(args[5])
-			if err != nil {
-				return err
-			}
-
+			rewardWeight := sdkmath.LegacyMustNewDecFromStr(args[1])
+			rewardWeightMin := sdkmath.LegacyMustNewDecFromStr(args[2])
+			rewardWeightMax := sdkmath.LegacyMustNewDecFromStr(args[3])
+			takeRate := sdkmath.LegacyMustNewDecFromStr(args[4])
+			rewardChangeRate := sdkmath.LegacyMustNewDecFromStr(args[5])
 			rewardChangeInterval, err := time.ParseDuration(args[6])
 			if err != nil {
 				return err
@@ -102,10 +83,6 @@ func CreateAlliance() *cobra.Command {
 				return err
 			}
 
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -138,21 +115,9 @@ func UpdateAlliance() *cobra.Command {
 
 			denom := args[0]
 
-			rewardWeight, err := sdk.NewDecFromStr(args[1])
-			if err != nil {
-				return err
-			}
-
-			takeRate, err := sdk.NewDecFromStr(args[2])
-			if err != nil {
-				return err
-			}
-
-			rewardChangeRate, err := sdk.NewDecFromStr(args[3])
-			if err != nil {
-				return err
-			}
-
+			rewardWeight := sdkmath.LegacyMustNewDecFromStr(args[1])
+			takeRate := sdkmath.LegacyMustNewDecFromStr(args[2])
+			rewardChangeRate := sdkmath.LegacyMustNewDecFromStr(args[3])
 			rewardChangeInterval, err := time.ParseDuration(args[4])
 			if err != nil {
 				return err
@@ -188,10 +153,6 @@ func UpdateAlliance() *cobra.Command {
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
-				return err
-			}
-
-			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -253,10 +214,6 @@ func DeleteAlliance() *cobra.Command {
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
-				return err
-			}
-
-			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}
 
