@@ -11,7 +11,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/terra-money/alliance/x/alliance/types"
 )
 
@@ -151,6 +150,9 @@ func TestInvalidProposalsContent(t *testing.T) {
 }
 
 func TestAminoJSON(t *testing.T) {
+	legacyAmino := codec.NewLegacyAmino()
+	types.RegisterLegacyAminoCodec(legacyAmino)
+	legacytx.RegressionTestingAminoCodec = legacyAmino
 	msgDelegate := types.NewMsgDelegate("delegator", "validator", sdk.NewCoin("Alliance", sdkmath.NewInt(1000000000000000000)))
 	require.Equal(t,
 		`{"account_number":"1","chain_id":"foo","fee":{"amount":[],"gas":"0"},"memo":"memo","msgs":[{"type":"alliance/MsgDelegate","value":{"amount":{"amount":"1000000000000000000","denom":"Alliance"},"delegator_address":"delegator","validator_address":"validator"}}],"sequence":"1","timeout_height":"1"}`,
