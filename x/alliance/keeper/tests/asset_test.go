@@ -93,7 +93,9 @@ func TestRebalancingAfterRewardsRateChange(t *testing.T) {
 	require.NoError(t, err)
 
 	// Expect no snapshots to be created
-	iter, err := app.AllianceKeeper.IterateWeightChangeSnapshot(ctx, AllianceDenom, []byte(val.GetOperator()), 0)
+	valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	require.NoError(t, err)
+	iter, err := app.AllianceKeeper.IterateWeightChangeSnapshot(ctx, AllianceDenom, valBz, 0)
 	require.NoError(t, err)
 	require.False(t, iter.Valid())
 
@@ -108,7 +110,7 @@ func TestRebalancingAfterRewardsRateChange(t *testing.T) {
 	require.NoError(t, err)
 
 	// Expect a snapshot to be created
-	iter, err = app.AllianceKeeper.IterateWeightChangeSnapshot(ctx, AllianceDenom, []byte(val.GetOperator()), 0)
+	iter, err = app.AllianceKeeper.IterateWeightChangeSnapshot(ctx, AllianceDenom, valBz, 0)
 	require.NoError(t, err)
 	require.True(t, iter.Valid())
 

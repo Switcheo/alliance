@@ -266,7 +266,9 @@ func RegisterNewValidator(t *testing.T, app *App, ctx sdk.Context, val stakingty
 	app.StakingKeeper.SetValidator(ctx, val)
 	app.StakingKeeper.SetValidatorByConsAddr(ctx, val) //nolint:errcheck
 	app.StakingKeeper.SetNewValidatorByPowerIndex(ctx, val)
-	err := app.StakingKeeper.Hooks().AfterValidatorCreated(ctx, []byte(val.GetOperator()))
+	valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	require.NoError(t, err)
+	err = app.StakingKeeper.Hooks().AfterValidatorCreated(ctx, valBz)
 	require.NoError(t, err)
 }
 

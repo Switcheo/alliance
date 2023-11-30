@@ -18,13 +18,17 @@ var _ RewardsKeeper = Keeper{}
 // This should be called everytime validator delegation changes (e.g. [un/re]delegation) to update the reward claim history
 func (k Keeper) ClaimValidatorRewards(ctx context.Context, val types.AllianceValidator) (sdk.Coins, error) {
 	moduleAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
+	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	if err != nil {
+		return nil, err
+	}
 
-	_, err := k.stakingKeeper.GetDelegation(ctx, moduleAddr, []byte(val.GetOperator()))
+	_, err = k.stakingKeeper.GetDelegation(ctx, moduleAddr, valBz)
 	if err != nil {
 		return sdk.NewCoins(), err
 	}
 
-	coins, err := k.distributionKeeper.WithdrawDelegationRewards(ctx, moduleAddr, []byte(val.GetOperator()))
+	coins, err := k.distributionKeeper.WithdrawDelegationRewards(ctx, moduleAddr, valBz)
 	if err != nil || coins.IsZero() {
 		return nil, err
 	}
@@ -53,12 +57,17 @@ func (k Keeper) ClaimDelegationRewards(
 		return sdk.NewCoins(), nil
 	}
 
-	delegation, found := k.GetDelegation(ctx, delAddr, []byte(val.GetOperator()), denom)
+	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	if err != nil {
+		return nil, err
+	}
+
+	delegation, found := k.GetDelegation(ctx, delAddr, valBz, denom)
 	if !found {
 		return sdk.Coins{}, stakingtypes.ErrNoDelegatorForAddress
 	}
 
-	_, err := k.ClaimValidatorRewards(ctx, val)
+	_, err = k.ClaimValidatorRewards(ctx, val)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +79,10 @@ func (k Keeper) ClaimDelegationRewards(
 
 	delegation.RewardHistory = newIndices
 	delegation.LastRewardClaimHeight = uint64(sdkCtx.BlockHeight())
-	k.SetDelegation(ctx, delAddr, []byte(val.GetOperator()), denom, delegation)
+	err = k.SetDelegation(ctx, delAddr, valBz, denom, delegation)
+	if err != nil {
+		return nil, err
+	}
 
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.RewardsPoolName, delAddr, coins)
 	if err != nil {
@@ -95,7 +107,11 @@ func (k Keeper) CalculateDelegationRewards(ctx context.Context, delegation types
 	currentRewardHistory := types.NewRewardHistories(val.GlobalRewardHistory)
 	delegationRewardHistories := types.NewRewardHistories(delegation.RewardHistory)
 	// If there are reward rate changes between last and current claim, sequentially claim with the help of the snapshots
-	snapshotIter, err := k.IterateWeightChangeSnapshot(ctx, asset.Denom, []byte(val.GetOperator()), delegation.LastRewardClaimHeight)
+	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	if err != nil {
+		return nil, nil, err
+	}
+	snapshotIter, err := k.IterateWeightChangeSnapshot(ctx, asset.Denom, valBz, delegation.LastRewardClaimHeight)
 	if err != nil {
 		return nil, nil, err
 	}

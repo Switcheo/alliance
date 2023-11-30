@@ -472,18 +472,22 @@ func TestClaimRewardsWithMultipleValidators(t *testing.T) {
 			BlockIdFlag: cmtproto.BlockIDFlagCommit,
 		},
 	})
+	val1Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val1.GetOperator())
+	require.NoError(t, err)
+	val2Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val2.GetOperator())
+	require.NoError(t, err)
 
-	commission, err := app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, []byte(val1.GetOperator()))
+	commission, err := app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, val1Bz)
 	require.NoError(t, err)
 	require.Equal(t, sdkmath.NewInt(0), commission.Commission.AmountOf("stake").TruncateInt())
-	commission, err = app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, []byte(val2.GetOperator()))
+	commission, err = app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, val2Bz)
 	require.NoError(t, err)
 	require.Equal(t, sdkmath.NewInt(3333333), commission.Commission.AmountOf("stake").TruncateInt())
 
-	rewards, err := app.DistrKeeper.GetValidatorCurrentRewards(ctx, []byte(val1.GetOperator()))
+	rewards, err := app.DistrKeeper.GetValidatorCurrentRewards(ctx, val1Bz)
 	require.NoError(t, err)
 	require.Equal(t, sdkmath.NewInt(666666), rewards.Rewards.AmountOf("stake").TruncateInt())
-	rewards, err = app.DistrKeeper.GetValidatorCurrentRewards(ctx, []byte(val2.GetOperator()))
+	rewards, err = app.DistrKeeper.GetValidatorCurrentRewards(ctx, val2Bz)
 	require.NoError(t, err)
 	require.Equal(t, sdkmath.NewInt(0), rewards.Rewards.AmountOf("stake").TruncateInt())
 

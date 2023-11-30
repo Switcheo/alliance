@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	addresscodec "cosmossdk.io/core/address"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -36,6 +37,7 @@ type StakingKeeper interface {
 	) (types.Validator, error)
 	IterateDelegatorDelegations(ctx context.Context, delegator sdk.AccAddress, cb func(delegation types.Delegation) (stop bool)) error
 	GetAllValidators(ctx context.Context) (validators []types.Validator, err error)
+	ValidatorAddressCodec() addresscodec.Codec
 }
 
 type BankKeeper interface {

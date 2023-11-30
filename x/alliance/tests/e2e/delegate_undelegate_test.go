@@ -54,14 +54,16 @@ func TestDelegateThenTakeRateThenUndelegate(t *testing.T) {
 	require.NoError(t, err)
 
 	asset, _ := app.AllianceKeeper.GetAssetByDenom(ctx, "test")
+	val0Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val0.GetOperator())
+	require.NoError(t, err)
 
-	del0, found := app.AllianceKeeper.GetDelegation(ctx, dels[0], []byte(val0.GetOperator()), "test")
+	del0, found := app.AllianceKeeper.GetDelegation(ctx, dels[0], val0Bz, "test")
 	require.True(t, found)
 	tokens := types.GetDelegationTokens(del0, val0, asset)
 	_, err = app.AllianceKeeper.Undelegate(ctx, dels[0], val0, tokens)
 	require.NoError(t, err)
 
-	_, found = app.AllianceKeeper.GetDelegation(ctx, dels[0], []byte(val0.GetOperator()), "test")
+	_, found = app.AllianceKeeper.GetDelegation(ctx, dels[0], val0Bz, "test")
 	require.False(t, found)
 
 	val0, err = app.AllianceKeeper.GetAllianceValidator(ctx, vals[0])
@@ -113,13 +115,16 @@ func TestDelegateThenTakeRateThenRedelegate(t *testing.T) {
 
 	asset, _ := app.AllianceKeeper.GetAssetByDenom(ctx, "test")
 
-	del0, found := app.AllianceKeeper.GetDelegation(ctx, dels[0], []byte(val0.GetOperator()), "test")
+	val0Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val0.GetOperator())
+	require.NoError(t, err)
+
+	del0, found := app.AllianceKeeper.GetDelegation(ctx, dels[0], val0Bz, "test")
 	require.True(t, found)
 	tokens := types.GetDelegationTokens(del0, val0, asset)
 	_, err = app.AllianceKeeper.Redelegate(ctx, dels[0], val0, val1, tokens)
 	require.NoError(t, err)
 
-	_, found = app.AllianceKeeper.GetDelegation(ctx, dels[0], []byte(val0.GetOperator()), "test")
+	_, found = app.AllianceKeeper.GetDelegation(ctx, dels[0], val0Bz, "test")
 	require.False(t, found)
 
 	val0, err = app.AllianceKeeper.GetAllianceValidator(ctx, vals[0])
@@ -199,8 +204,11 @@ func TestDelegatingASmallAmount(t *testing.T) {
 	_, err = app.AllianceKeeper.Undelegate(ctx, user1, val1, del.Balance)
 	require.NoError(t, err)
 
+	val1Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val1.GetOperator())
+	require.NoError(t, err)
+
 	// User should have everything withdrawn
-	_, found := app.AllianceKeeper.GetDelegation(ctx, user1, []byte(val1.GetOperator()), allianceAsset2)
+	_, found := app.AllianceKeeper.GetDelegation(ctx, user1, val1Bz, allianceAsset2)
 	require.False(t, found)
 
 	// Delegate again
@@ -232,7 +240,7 @@ func TestDelegatingASmallAmount(t *testing.T) {
 	require.NoError(t, err)
 
 	// User should have everything withdrawn
-	_, found = app.AllianceKeeper.GetDelegation(ctx, user1, []byte(val1.GetOperator()), allianceAsset2)
+	_, found = app.AllianceKeeper.GetDelegation(ctx, user1, val1Bz, allianceAsset2)
 	require.False(t, found)
 
 	res, err = queryServer.AllianceDelegation(ctx, &types.QueryAllianceDelegationRequest{
@@ -253,7 +261,7 @@ func TestDelegatingASmallAmount(t *testing.T) {
 	require.Equal(t, sdkmath.NewInt(100), unbondings[0].Amount)
 
 	// Query the unbondings in progress
-	unbondings, err = app.AllianceKeeper.GetUnbondings(ctx, allianceAsset2, user1, []byte(val1.GetOperator()))
+	unbondings, err = app.AllianceKeeper.GetUnbondings(ctx, allianceAsset2, user1, val1Bz)
 	require.NoError(t, err)
 	require.True(t, len(unbondings) == 1)
 	require.Equal(t, val1.GetOperator(), unbondings[0].ValidatorAddress)

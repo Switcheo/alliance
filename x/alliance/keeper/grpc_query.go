@@ -255,7 +255,12 @@ func (k QueryServer) AllianceDelegationRewards(context context.Context, req *typ
 		return nil, err
 	}
 
-	_, found = k.GetDelegation(ctx, delAddr, []byte(val.GetOperator()), req.Denom)
+	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	if err != nil {
+		return nil, err
+	}
+
+	_, found = k.GetDelegation(ctx, delAddr, valBz, req.Denom)
 	if !found {
 		return nil, stakingtypes.ErrNoDelegation
 	}
@@ -432,7 +437,12 @@ func (k QueryServer) AllianceDelegation(c context.Context, req *types.QueryAllia
 		return nil, status.Errorf(codes.NotFound, "AllianceAsset not found by denom %s", req.Denom)
 	}
 
-	delegation, found := k.GetDelegation(ctx, delAddr, []byte(validator.GetOperator()), req.Denom)
+	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	if err != nil {
+		return nil, err
+	}
+
+	delegation, found := k.GetDelegation(ctx, delAddr, valBz, req.Denom)
 	if !found {
 		return &types.QueryAllianceDelegationResponse{
 			Delegation: types.DelegationResponse{

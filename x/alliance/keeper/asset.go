@@ -141,7 +141,11 @@ func (k Keeper) RebalanceBondTokenWeights(ctx sdk.Context, assets []*types.Allia
 
 	for _, validator := range bondedValidators {
 		currentBondedAmount := sdkmath.LegacyNewDec(0)
-		delegation, err := k.stakingKeeper.GetDelegation(ctx, moduleAddr, []byte(validator.GetOperator()))
+		valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+		if err != nil {
+			return err
+		}
+		delegation, err := k.stakingKeeper.GetDelegation(ctx, moduleAddr, valBz)
 		if err == nil {
 			currentBondedAmount = validator.TokensFromShares(delegation.GetShares())
 		}
@@ -191,7 +195,7 @@ func (k Keeper) RebalanceBondTokenWeights(ctx sdk.Context, assets []*types.Allia
 			if unbondAmount.IsZero() {
 				continue
 			}
-			sharesToUnbond, err := k.stakingKeeper.ValidateUnbondAmount(ctx, moduleAddr, []byte(validator.GetOperator()), unbondAmount)
+			sharesToUnbond, err := k.stakingKeeper.ValidateUnbondAmount(ctx, moduleAddr, valBz, unbondAmount)
 			if err != nil {
 				return err
 			}
@@ -199,7 +203,7 @@ func (k Keeper) RebalanceBondTokenWeights(ctx sdk.Context, assets []*types.Allia
 			if err != nil {
 				return err
 			}
-			tokensToBurn, err := k.stakingKeeper.Unbond(ctx, moduleAddr, []byte(validator.GetOperator()), sharesToUnbond)
+			tokensToBurn, err := k.stakingKeeper.Unbond(ctx, moduleAddr, valBz, sharesToUnbond)
 			if err != nil {
 				return err
 			}
@@ -368,7 +372,8 @@ func (k Keeper) DeductAssetsWithTakeRate(ctx sdk.Context, lastClaim time.Time, a
 
 func (k Keeper) SetRewardWeightChangeSnapshot(ctx sdk.Context, asset types.AllianceAsset, val types.AllianceValidator) {
 	snapshot := types.NewRewardWeightChangeSnapshot(asset, val)
-	k.setRewardWeightChangeSnapshot(ctx, asset.Denom, []byte(val.GetOperator()), uint64(ctx.BlockHeight()), snapshot)
+	valBz, _ := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	k.setRewardWeightChangeSnapshot(ctx, asset.Denom, valBz, uint64(ctx.BlockHeight()), snapshot)
 }
 
 func (k Keeper) CreateInitialRewardWeightChangeSnapshot(ctx sdk.Context, denom string, valAddr sdk.ValAddress, info types.AllianceValidatorInfo) {

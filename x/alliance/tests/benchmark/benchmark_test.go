@@ -222,7 +222,11 @@ func undelegateOperation(ctx sdk.Context, app *test_helpers.App, r *rand.Rand) {
 	validator, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
 	asset, _ := app.AllianceKeeper.GetAssetByDenom(ctx, delegation.Denom)
 
-	delegation, found := app.AllianceKeeper.GetDelegation(ctx, delAddr, []byte(validator.GetOperator()), asset.Denom)
+	valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	if err != nil {
+		return
+	}
+	delegation, found := app.AllianceKeeper.GetDelegation(ctx, delAddr, valBz, asset.Denom)
 	if !found {
 		return
 	}
@@ -230,7 +234,7 @@ func undelegateOperation(ctx sdk.Context, app *test_helpers.App, r *rand.Rand) {
 	if amountToUndelegate.IsZero() {
 		return
 	}
-	_, err := app.AllianceKeeper.Undelegate(ctx, delAddr, validator, sdk.NewCoin(asset.Denom, amountToUndelegate))
+	_, err = app.AllianceKeeper.Undelegate(ctx, delAddr, validator, sdk.NewCoin(asset.Denom, amountToUndelegate))
 	if err != nil {
 		panic(err)
 	}
@@ -250,12 +254,17 @@ func claimRewardsOperation(ctx sdk.Context, app *test_helpers.App, r *rand.Rand)
 	valAddr, _ := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 	validator, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
 
-	delegation, found := app.AllianceKeeper.GetDelegation(ctx, delAddr, []byte(validator.GetOperator()), delegation.Denom)
+	valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	if err != nil {
+		return
+	}
+
+	delegation, found := app.AllianceKeeper.GetDelegation(ctx, delAddr, valBz, delegation.Denom)
 	if !found {
 		return
 	}
 
-	_, err := app.AllianceKeeper.ClaimDelegationRewards(ctx, delAddr, validator, delegation.Denom)
+	_, err = app.AllianceKeeper.ClaimDelegationRewards(ctx, delAddr, validator, delegation.Denom)
 	if err != nil {
 		panic(err)
 	}
