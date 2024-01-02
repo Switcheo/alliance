@@ -36,11 +36,31 @@ func CreateAlliance() *cobra.Command {
 
 			denom := args[0]
 
-			rewardWeight := sdkmath.LegacyMustNewDecFromStr(args[1])
-			rewardWeightMin := sdkmath.LegacyMustNewDecFromStr(args[2])
-			rewardWeightMax := sdkmath.LegacyMustNewDecFromStr(args[3])
-			takeRate := sdkmath.LegacyMustNewDecFromStr(args[4])
-			rewardChangeRate := sdkmath.LegacyMustNewDecFromStr(args[5])
+			rewardWeight, err := sdkmath.LegacyNewDecFromStr(args[1])
+			if err != nil {
+				return err
+			}
+
+			rewardWeightMin, err := sdkmath.LegacyNewDecFromStr(args[2])
+			if err != nil {
+				return err
+			}
+
+			rewardWeightMax, err := sdkmath.LegacyNewDecFromStr(args[3])
+			if err != nil {
+				return err
+			}
+
+			takeRate, err := sdkmath.LegacyNewDecFromStr(args[4])
+			if err != nil {
+				return err
+			}
+
+			rewardChangeRate, err := sdkmath.LegacyNewDecFromStr(args[5])
+			if err != nil {
+				return err
+			}
+
 			rewardChangeInterval, err := time.ParseDuration(args[6])
 			if err != nil {
 				return err
@@ -115,9 +135,21 @@ func UpdateAlliance() *cobra.Command {
 
 			denom := args[0]
 
-			rewardWeight := sdkmath.LegacyMustNewDecFromStr(args[1])
-			takeRate := sdkmath.LegacyMustNewDecFromStr(args[2])
-			rewardChangeRate := sdkmath.LegacyMustNewDecFromStr(args[3])
+			rewardWeight, err := sdkmath.LegacyNewDecFromStr(args[1])
+			if err != nil {
+				return err
+			}
+
+			takeRate, err := sdkmath.LegacyNewDecFromStr(args[2])
+			if err != nil {
+				return err
+			}
+
+			rewardChangeRate, err := sdkmath.LegacyNewDecFromStr(args[3])
+			if err != nil {
+				return err
+			}
+
 			rewardChangeInterval, err := time.ParseDuration(args[4])
 			if err != nil {
 				return err
