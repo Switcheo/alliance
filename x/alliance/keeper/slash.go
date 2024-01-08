@@ -91,7 +91,13 @@ func (k Keeper) slashRedelegations(ctx context.Context, valAddr sdk.ValAddress, 
 			return err
 		}
 
-		delegation, found := k.GetDelegation(ctx, delAddr, []byte(dstVal.GetOperator()), redelegation.Balance.Denom)
+		valCodec := k.stakingKeeper.ValidatorAddressCodec()
+		dstValAddr, err = valCodec.StringToBytes(dstVal.GetOperator())
+		if err != nil {
+			return err
+		}
+
+		delegation, found := k.GetDelegation(ctx, delAddr, dstValAddr, redelegation.Balance.Denom)
 		if !found {
 			continue
 		}
@@ -111,7 +117,10 @@ func (k Keeper) slashRedelegations(ctx context.Context, valAddr sdk.ValAddress, 
 		k.SetValidator(ctx, dstVal)
 
 		delegation.Shares = delegation.Shares.Sub(sharesToSlash)
-		k.SetDelegation(ctx, delAddr, []byte(dstVal.GetOperator()), asset.Denom, delegation)
+		err = k.SetDelegation(ctx, delAddr, dstValAddr, asset.Denom, delegation)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

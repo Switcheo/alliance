@@ -95,8 +95,20 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 	if err != nil {
 		app.Logger().Error(err.Error())
 	}
+	addrCodec := app.AccountKeeper.AddressCodec()
+	valCodec := app.StakingKeeper.ValidatorAddressCodec()
 	for _, delegation := range dels {
-		_, err := app.DistrKeeper.WithdrawDelegationRewards(ctx, []byte(delegation.GetDelegatorAddr()), []byte(delegation.GetValidatorAddr()))
+		delAddr, err := addrCodec.StringToBytes(delegation.GetDelegatorAddr())
+		if err != nil {
+			panic(err)
+		}
+
+		valAddr, err := valCodec.StringToBytes(delegation.GetValidatorAddr())
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
 		if err != nil {
 			panic(err)
 		}
@@ -141,11 +153,21 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 
 	// reinitialize all delegations
 	for _, del := range dels {
-		err := app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, []byte(del.GetDelegatorAddr()), []byte(del.GetValidatorAddr()))
+		delAddr, err := addrCodec.StringToBytes(del.GetDelegatorAddr())
 		if err != nil {
 			panic(err)
 		}
-		err = app.DistrKeeper.Hooks().AfterDelegationModified(ctx, []byte(del.GetDelegatorAddr()), []byte(del.GetValidatorAddr()))
+
+		valAddr, err := valCodec.StringToBytes(del.GetValidatorAddr())
+		if err != nil {
+			panic(err)
+		}
+
+		err = app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, delAddr, valAddr)
+		if err != nil {
+			panic(err)
+		}
+		err = app.DistrKeeper.Hooks().AfterDelegationModified(ctx, delAddr, valAddr)
 		if err != nil {
 			panic(err)
 		}

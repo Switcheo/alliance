@@ -895,7 +895,11 @@ func TestRewardWeightDecayOverTime(t *testing.T) {
 	_, err = app.StakingKeeper.Delegate(ctx, addrs[4], sdkmath.NewInt(9_000_000), stakingtypes.Unbonded, _val0, true)
 	require.NoError(t, err)
 
-	val0, _ := app.AllianceKeeper.GetAllianceValidator(ctx, []byte(_val0.GetOperator()))
+	valCodec := app.StakingKeeper.ValidatorAddressCodec()
+	val0Addr, err := valCodec.StringToBytes(_val0.GetOperator())
+	require.NoError(t, err)
+
+	val0, _ := app.AllianceKeeper.GetAllianceValidator(ctx, val0Addr)
 	require.NoError(t, err)
 
 	// Pass a proposal to add a new asset with a decay rate

@@ -175,7 +175,13 @@ func redelegateOperation(ctx sdk.Context, app *test_helpers.App, r *rand.Rand, v
 	dstValAddr := getRandomValAddress(r, vals, srcValAddr)
 	dstValidator, _ := app.AllianceKeeper.GetAllianceValidator(ctx, dstValAddr)
 
-	delegation, found := app.AllianceKeeper.GetDelegation(ctx, delAddr, []byte(srcValidator.GetOperator()), asset.Denom)
+	valCodec := app.StakingKeeper.ValidatorAddressCodec()
+	srcValAddr, err := valCodec.StringToBytes(srcValidator.GetOperator())
+	if err != nil {
+		panic(err)
+	}
+
+	delegation, found := app.AllianceKeeper.GetDelegation(ctx, delAddr, srcValAddr, asset.Denom)
 	if !found {
 		return
 	}
@@ -183,7 +189,7 @@ func redelegateOperation(ctx sdk.Context, app *test_helpers.App, r *rand.Rand, v
 	if amountToRedelegate.LTE(sdkmath.OneInt()) {
 		return
 	}
-	_, err := app.AllianceKeeper.Redelegate(ctx, delAddr, srcValidator, dstValidator, sdk.NewCoin(delegation.Denom, amountToRedelegate))
+	_, err = app.AllianceKeeper.Redelegate(ctx, delAddr, srcValidator, dstValidator, sdk.NewCoin(delegation.Denom, amountToRedelegate))
 	if err != nil {
 		panic(err)
 	}

@@ -85,18 +85,29 @@ func (k Keeper) Redelegate(ctx sdk.Context, delAddr sdk.AccAddress, srcVal types
 		return nil, status.Errorf(codes.NotFound, "Asset with denom: %s does not exist", coin.Denom)
 	}
 
-	_, found = k.GetDelegation(ctx, delAddr, []byte(srcVal.GetOperator()), coin.Denom)
+	valCodec := k.stakingKeeper.ValidatorAddressCodec()
+	srcValAddr, err := valCodec.StringToBytes(srcVal.GetOperator())
+	if err != nil {
+		return nil, err
+	}
+
+	_, found = k.GetDelegation(ctx, delAddr, srcValAddr, coin.Denom)
 	if !found {
 		return nil, stakingtypes.ErrNoDelegatorForAddress
 	}
-	_, err := k.ClaimDelegationRewards(ctx, delAddr, srcVal, coin.Denom)
+	_, err = k.ClaimDelegationRewards(ctx, delAddr, srcVal, coin.Denom)
 	if err != nil {
 		return nil, err
 	}
 	// re-query delegation since it was updated in `ClaimDelegationRewards`
-	srcDelegation, _ := k.GetDelegation(ctx, delAddr, []byte(srcVal.GetOperator()), coin.Denom)
+	srcDelegation, _ := k.GetDelegation(ctx, delAddr, srcValAddr, coin.Denom)
 
-	_, found = k.GetDelegation(ctx, delAddr, []byte(dstVal.GetOperator()), coin.Denom)
+	dstValAddr, err := valCodec.StringToBytes(dstVal.GetOperator())
+	if err != nil {
+		return nil, err
+	}
+
+	_, found = k.GetDelegation(ctx, delAddr, dstValAddr, coin.Denom)
 	if found {
 		_, err = k.ClaimDelegationRewards(ctx, delAddr, dstVal, coin.Denom)
 		if err != nil {
@@ -119,7 +130,7 @@ func (k Keeper) Redelegate(ctx sdk.Context, delAddr sdk.AccAddress, srcVal types
 	// Prevents transitive re-delegations
 	// e.g. if a redelegation from A -> B is made before another request from B -> C
 	// the latter is blocked until the first redelegation is mature (time > unbonding time)
-	if k.HasRedelegation(ctx, delAddr, []byte(srcVal.GetOperator()), coin.Denom) {
+	if k.HasRedelegation(ctx, delAddr, srcValAddr, coin.Denom) {
 		return nil, stakingtypes.ErrTransitiveRedelegation
 	}
 
@@ -153,7 +164,10 @@ func (k Keeper) Redelegate(ctx sdk.Context, delAddr sdk.AccAddress, srcVal types
 		true,
 	)
 
-	k.addRedelegation(ctx, delAddr, []byte(srcVal.GetOperator()), []byte(dstVal.GetOperator()), coin, completionTime)
+	err = k.addRedelegation(ctx, delAddr, srcValAddr, dstValAddr, coin, completionTime)
+	if err != nil {
+		return nil, err
+	}
 
 	k.QueueAssetRebalanceEvent(ctx)
 
