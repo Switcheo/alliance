@@ -175,8 +175,7 @@ func redelegateOperation(ctx sdk.Context, app *test_helpers.App, r *rand.Rand, v
 	dstValAddr := getRandomValAddress(r, vals, srcValAddr)
 	dstValidator, _ := app.AllianceKeeper.GetAllianceValidator(ctx, dstValAddr)
 
-	valCodec := app.StakingKeeper.ValidatorAddressCodec()
-	srcValAddr, err := valCodec.StringToBytes(srcValidator.GetOperator())
+	srcValAddr, err := app.AllianceKeeper.GetValidatorAddrBz(srcValidator.GetOperator())
 	if err != nil {
 		panic(err)
 	}
@@ -228,7 +227,7 @@ func undelegateOperation(ctx sdk.Context, app *test_helpers.App, r *rand.Rand) {
 	validator, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
 	asset, _ := app.AllianceKeeper.GetAssetByDenom(ctx, delegation.Denom)
 
-	valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	valBz, err := app.AllianceKeeper.GetValidatorAddrBz(validator.GetOperator())
 	if err != nil {
 		return
 	}
@@ -260,7 +259,7 @@ func claimRewardsOperation(ctx sdk.Context, app *test_helpers.App, r *rand.Rand)
 	valAddr, _ := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 	validator, _ := app.AllianceKeeper.GetAllianceValidator(ctx, valAddr)
 
-	valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	valBz, err := app.AllianceKeeper.GetValidatorAddrBz(validator.GetOperator())
 	if err != nil {
 		return
 	}

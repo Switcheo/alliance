@@ -93,7 +93,7 @@ func TestRebalancingAfterRewardsRateChange(t *testing.T) {
 	require.NoError(t, err)
 
 	// Expect no snapshots to be created
-	valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	valBz, err := app.AllianceKeeper.GetValidatorAddrBz(val.GetOperator())
 	require.NoError(t, err)
 	iter, err := app.AllianceKeeper.IterateWeightChangeSnapshot(ctx, AllianceDenom, valBz, 0)
 	require.NoError(t, err)
@@ -895,11 +895,10 @@ func TestRewardWeightDecayOverTime(t *testing.T) {
 	_, err = app.StakingKeeper.Delegate(ctx, addrs[4], sdkmath.NewInt(9_000_000), stakingtypes.Unbonded, _val0, true)
 	require.NoError(t, err)
 
-	valCodec := app.StakingKeeper.ValidatorAddressCodec()
-	val0Addr, err := valCodec.StringToBytes(_val0.GetOperator())
+	val0AddrBz, err := app.AllianceKeeper.GetValidatorAddrBz(_val0.GetOperator())
 	require.NoError(t, err)
 
-	val0, _ := app.AllianceKeeper.GetAllianceValidator(ctx, val0Addr)
+	val0, _ := app.AllianceKeeper.GetAllianceValidator(ctx, val0AddrBz)
 	require.NoError(t, err)
 
 	// Pass a proposal to add a new asset with a decay rate

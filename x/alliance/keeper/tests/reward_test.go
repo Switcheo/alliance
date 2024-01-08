@@ -472,22 +472,22 @@ func TestClaimRewardsWithMultipleValidators(t *testing.T) {
 			BlockIdFlag: cmtproto.BlockIDFlagCommit,
 		},
 	})
-	val1Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val1.GetOperator())
+	val1AddrBz, err := app.AllianceKeeper.GetValidatorAddrBz(val1.GetOperator())
 	require.NoError(t, err)
-	val2Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val2.GetOperator())
+	val2AddrBz, err := app.AllianceKeeper.GetValidatorAddrBz(val2.GetOperator())
 	require.NoError(t, err)
 
-	commission, err := app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, val1Bz)
+	commission, err := app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, val1AddrBz)
 	require.NoError(t, err)
 	require.Equal(t, sdkmath.NewInt(0), commission.Commission.AmountOf("stake").TruncateInt())
-	commission, err = app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, val2Bz)
+	commission, err = app.DistrKeeper.GetValidatorAccumulatedCommission(ctx, val2AddrBz)
 	require.NoError(t, err)
 	require.Equal(t, sdkmath.NewInt(3333333), commission.Commission.AmountOf("stake").TruncateInt())
 
-	rewards, err := app.DistrKeeper.GetValidatorCurrentRewards(ctx, val1Bz)
+	rewards, err := app.DistrKeeper.GetValidatorCurrentRewards(ctx, val1AddrBz)
 	require.NoError(t, err)
 	require.Equal(t, sdkmath.NewInt(666666), rewards.Rewards.AmountOf("stake").TruncateInt())
-	rewards, err = app.DistrKeeper.GetValidatorCurrentRewards(ctx, val2Bz)
+	rewards, err = app.DistrKeeper.GetValidatorCurrentRewards(ctx, val2AddrBz)
 	require.NoError(t, err)
 	require.Equal(t, sdkmath.NewInt(0), rewards.Rewards.AmountOf("stake").TruncateInt())
 
@@ -740,11 +740,10 @@ func TestRewardClaimingAfterRatesDecay(t *testing.T) {
 	_, err = app.StakingKeeper.Delegate(ctx, addrs[4], sdkmath.NewInt(9_000_000), stakingtypes.Unbonded, _val0, true)
 	require.NoError(t, err)
 
-	valCodec := app.StakingKeeper.ValidatorAddressCodec()
-	val0Addr, err := valCodec.StringToBytes(_val0.GetOperator())
+	val0AddrBz, err := app.AllianceKeeper.GetValidatorAddrBz(_val0.GetOperator())
 	require.NoError(t, err)
 
-	val0, _ := app.AllianceKeeper.GetAllianceValidator(ctx, val0Addr)
+	val0, _ := app.AllianceKeeper.GetAllianceValidator(ctx, val0AddrBz)
 	require.NoError(t, err)
 
 	// Pass a proposal to add a new asset with a huge decay rate

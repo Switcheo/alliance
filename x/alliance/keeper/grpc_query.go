@@ -255,7 +255,7 @@ func (k QueryServer) AllianceDelegationRewards(context context.Context, req *typ
 		return nil, err
 	}
 
-	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	valBz, err := k.GetValidatorAddrBz(val.GetOperator())
 	if err != nil {
 		return nil, err
 	}
@@ -437,7 +437,7 @@ func (k QueryServer) AllianceDelegation(c context.Context, req *types.QueryAllia
 		return nil, status.Errorf(codes.NotFound, "AllianceAsset not found by denom %s", req.Denom)
 	}
 
-	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+	valBz, err := k.GetValidatorAddrBz(validator.GetOperator())
 	if err != nil {
 		return nil, err
 	}

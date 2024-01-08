@@ -54,7 +54,7 @@ func TestDelegateThenTakeRateThenUndelegate(t *testing.T) {
 	require.NoError(t, err)
 
 	asset, _ := app.AllianceKeeper.GetAssetByDenom(ctx, "test")
-	val0Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val0.GetOperator())
+	val0Bz, err := app.AllianceKeeper.GetValidatorAddrBz(val0.GetOperator())
 	require.NoError(t, err)
 
 	del0, found := app.AllianceKeeper.GetDelegation(ctx, dels[0], val0Bz, "test")
@@ -115,7 +115,7 @@ func TestDelegateThenTakeRateThenRedelegate(t *testing.T) {
 
 	asset, _ := app.AllianceKeeper.GetAssetByDenom(ctx, "test")
 
-	val0Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val0.GetOperator())
+	val0Bz, err := app.AllianceKeeper.GetValidatorAddrBz(val0.GetOperator())
 	require.NoError(t, err)
 
 	del0, found := app.AllianceKeeper.GetDelegation(ctx, dels[0], val0Bz, "test")
@@ -204,7 +204,7 @@ func TestDelegatingASmallAmount(t *testing.T) {
 	_, err = app.AllianceKeeper.Undelegate(ctx, user1, val1, del.Balance)
 	require.NoError(t, err)
 
-	val1Bz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val1.GetOperator())
+	val1Bz, err := app.AllianceKeeper.GetValidatorAddrBz(val1.GetOperator())
 	require.NoError(t, err)
 
 	// User should have everything withdrawn

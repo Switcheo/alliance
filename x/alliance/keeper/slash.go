@@ -91,8 +91,7 @@ func (k Keeper) slashRedelegations(ctx context.Context, valAddr sdk.ValAddress, 
 			return err
 		}
 
-		valCodec := k.stakingKeeper.ValidatorAddressCodec()
-		dstValAddr, err = valCodec.StringToBytes(dstVal.GetOperator())
+		dstValAddr, err = k.GetValidatorAddrBz(dstVal.GetOperator())
 		if err != nil {
 			return err
 		}

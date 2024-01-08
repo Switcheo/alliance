@@ -18,7 +18,7 @@ var _ RewardsKeeper = Keeper{}
 // This should be called everytime validator delegation changes (e.g. [un/re]delegation) to update the reward claim history
 func (k Keeper) ClaimValidatorRewards(ctx context.Context, val types.AllianceValidator) (sdk.Coins, error) {
 	moduleAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
-	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	valBz, err := k.GetValidatorAddrBz(val.GetOperator())
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (k Keeper) ClaimDelegationRewards(
 		return sdk.NewCoins(), nil
 	}
 
-	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	valBz, err := k.GetValidatorAddrBz(val.GetOperator())
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (k Keeper) CalculateDelegationRewards(ctx context.Context, delegation types
 	currentRewardHistory := types.NewRewardHistories(val.GlobalRewardHistory)
 	delegationRewardHistories := types.NewRewardHistories(delegation.RewardHistory)
 	// If there are reward rate changes between last and current claim, sequentially claim with the help of the snapshots
-	valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	valBz, err := k.GetValidatorAddrBz(val.GetOperator())
 	if err != nil {
 		return nil, nil, err
 	}

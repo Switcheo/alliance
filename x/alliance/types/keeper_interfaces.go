@@ -56,6 +56,7 @@ type AccountKeeper interface {
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx context.Context, name string) sdk.ModuleAccountI
+	AddressCodec() addresscodec.Codec
 }
 
 type DistributionKeeper interface {

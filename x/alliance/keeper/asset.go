@@ -141,7 +141,7 @@ func (k Keeper) RebalanceBondTokenWeights(ctx sdk.Context, assets []*types.Allia
 
 	for _, validator := range bondedValidators {
 		currentBondedAmount := sdkmath.LegacyNewDec(0)
-		valBz, err := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(validator.GetOperator())
+		valBz, err := k.GetValidatorAddrBz(validator.GetOperator())
 		if err != nil {
 			return err
 		}
@@ -372,7 +372,7 @@ func (k Keeper) DeductAssetsWithTakeRate(ctx sdk.Context, lastClaim time.Time, a
 
 func (k Keeper) SetRewardWeightChangeSnapshot(ctx sdk.Context, asset types.AllianceAsset, val types.AllianceValidator) {
 	snapshot := types.NewRewardWeightChangeSnapshot(asset, val)
-	valBz, _ := k.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	valBz, _ := k.GetValidatorAddrBz(val.GetOperator())
 	k.setRewardWeightChangeSnapshot(ctx, asset.Denom, valBz, uint64(ctx.BlockHeight()), snapshot)
 }
 

@@ -84,3 +84,12 @@ func (k Keeper) DeleteValidatorInfo(ctx context.Context, valAddr sdk.ValAddress)
 	key := types.GetAllianceValidatorInfoKey(valAddr)
 	store.Delete(key)
 }
+
+func (k Keeper) GetValidatorAddrBz(valAddrString string) ([]byte, error) {
+	valAddrCodec := k.stakingKeeper.ValidatorAddressCodec()
+	valAddrBz, err := valAddrCodec.StringToBytes(valAddrString)
+	if err != nil {
+		return nil, err
+	}
+	return valAddrBz, nil
+}
