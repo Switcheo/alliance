@@ -96,14 +96,13 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 		app.Logger().Error(err.Error())
 	}
 	addrCodec := app.AccountKeeper.AddressCodec()
-	valCodec := app.StakingKeeper.ValidatorAddressCodec()
 	for _, delegation := range dels {
 		delAddr, err := addrCodec.StringToBytes(delegation.GetDelegatorAddr())
 		if err != nil {
 			panic(err)
 		}
 
-		valAddr, err := valCodec.StringToBytes(delegation.GetValidatorAddr())
+		valAddr, err := app.AllianceKeeper.GetValidatorAddrBz(delegation.GetValidatorAddr())
 		if err != nil {
 			panic(err)
 		}
@@ -127,7 +126,7 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 	// reinitialize all validators
 	app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
-		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+		valBz, err := app.AllianceKeeper.GetValidatorAddrBz(val.GetOperator())
 		if err != nil {
 			return true
 		}
@@ -158,7 +157,7 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 			panic(err)
 		}
 
-		valAddr, err := valCodec.StringToBytes(del.GetValidatorAddr())
+		valAddr, err := app.AllianceKeeper.GetValidatorAddrBz(del.GetValidatorAddr())
 		if err != nil {
 			panic(err)
 		}
