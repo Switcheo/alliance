@@ -525,6 +525,7 @@ func New(
 		app.MsgServiceRouter(),
 		govConfig,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		make([]string, 0),
 	)
 	govKeeper.SetLegacyRouter(govRouter)
 

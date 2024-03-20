@@ -91,7 +91,7 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		return nil, types.ErrNoOutputs
 	}
 
-	if err := types.ValidateInputOutputs(msg.Inputs[0], msg.Outputs); err != nil {
+	if err := types.ValidateInputOutputs(msg.Inputs, msg.Outputs); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		}
 	}
 
-	err := k.keeper.InputOutputCoins(ctx, msg.Inputs[0], msg.Outputs)
+	err := k.keeper.InputOutputCoins(ctx, msg.Inputs, msg.Outputs)
 	if err != nil {
 		return nil, err
 	}
