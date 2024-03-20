@@ -10,6 +10,7 @@ import (
 	"github.com/terra-money/alliance/x/alliance/keeper"
 	"github.com/terra-money/alliance/x/alliance/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/require"
@@ -21,16 +22,17 @@ func TestCreateAlliance(t *testing.T) {
 	startTime := time.Now()
 	ctx.WithBlockTime(startTime).WithBlockHeight(1)
 	queryServer := keeper.NewQueryServerImpl(app.AllianceKeeper)
-	rewardDuration := app.AllianceKeeper.RewardDelayTime(ctx)
+	rewardDuration, err := app.AllianceKeeper.RewardDelayTime(ctx)
+	require.NoError(t, err)
 
 	// WHEN
 	createErr := app.AllianceKeeper.CreateAlliance(ctx, &types.MsgCreateAllianceProposal{
 		Title:             "",
 		Description:       "",
 		Denom:             "uluna",
-		RewardWeight:      sdk.OneDec(),
-		RewardWeightRange: types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(5)},
-		TakeRate:          sdk.OneDec(),
+		RewardWeight:      sdkmath.LegacyOneDec(),
+		RewardWeightRange: types.RewardWeightRange{Min: sdkmath.LegacyNewDec(0), Max: sdkmath.LegacyNewDec(5)},
+		TakeRate:          sdkmath.LegacyOneDec(),
 	})
 	alliancesRes, alliancesErr := queryServer.Alliances(ctx, &types.QueryAlliancesRequest{})
 
@@ -41,13 +43,13 @@ func TestCreateAlliance(t *testing.T) {
 		Alliances: []types.AllianceAsset{
 			{
 				Denom:                "uluna",
-				RewardWeight:         sdk.NewDec(1),
-				RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(5)},
-				TakeRate:             sdk.NewDec(1),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(1),
+				RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(0), Max: sdkmath.LegacyNewDec(5)},
+				TakeRate:             sdkmath.LegacyNewDec(1),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
 				RewardStartTime:      ctx.BlockTime().Add(rewardDuration),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 				LastRewardChangeTime: ctx.BlockTime().Add(rewardDuration),
 			},
@@ -67,7 +69,7 @@ func TestCreateAllianceFailWithDuplicatedDenom(t *testing.T) {
 	app.AllianceKeeper.InitGenesis(ctx, &types.GenesisState{
 		Params: types.DefaultParams(),
 		Assets: []types.AllianceAsset{
-			types.NewAllianceAsset("uluna", sdk.NewDec(1), sdk.ZeroDec(), sdk.NewDec(2), sdk.NewDec(0), startTime),
+			types.NewAllianceAsset("uluna", sdkmath.LegacyNewDec(1), sdkmath.LegacyZeroDec(), sdkmath.LegacyNewDec(2), sdkmath.LegacyNewDec(0), startTime),
 		},
 	})
 
@@ -76,8 +78,8 @@ func TestCreateAllianceFailWithDuplicatedDenom(t *testing.T) {
 		Title:        "",
 		Description:  "",
 		Denom:        "uluna",
-		RewardWeight: sdk.OneDec(),
-		TakeRate:     sdk.OneDec(),
+		RewardWeight: sdkmath.LegacyOneDec(),
+		TakeRate:     sdkmath.LegacyOneDec(),
 	})
 
 	// THEN
@@ -94,11 +96,11 @@ func TestUpdateAlliance(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:                "uluna",
-				RewardWeight:         sdk.NewDec(2),
-				RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(10)},
-				TakeRate:             sdk.OneDec(),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(2),
+				RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(0), Max: sdkmath.LegacyNewDec(10)},
+				TakeRate:             sdkmath.LegacyOneDec(),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
 			},
 		},
 	})
@@ -109,10 +111,10 @@ func TestUpdateAlliance(t *testing.T) {
 		Title:                "",
 		Description:          "",
 		Denom:                "uluna",
-		RewardWeight:         sdk.NewDec(6),
-		TakeRate:             sdk.NewDec(7),
+		RewardWeight:         sdkmath.LegacyNewDec(6),
+		TakeRate:             sdkmath.LegacyNewDec(7),
 		RewardChangeInterval: 0,
-		RewardChangeRate:     sdk.ZeroDec(),
+		RewardChangeRate:     sdkmath.LegacyZeroDec(),
 	})
 	alliancesRes, alliancesErr := queryServer.Alliances(ctx, &types.QueryAlliancesRequest{})
 
@@ -123,12 +125,12 @@ func TestUpdateAlliance(t *testing.T) {
 		Alliances: []types.AllianceAsset{
 			{
 				Denom:                "uluna",
-				RewardWeight:         sdk.NewDec(6),
-				RewardWeightRange:    types.RewardWeightRange{Min: sdk.NewDec(0), Max: sdk.NewDec(10)},
-				TakeRate:             sdk.NewDec(7),
-				TotalTokens:          sdk.ZeroInt(),
-				TotalValidatorShares: sdk.NewDec(0),
-				RewardChangeRate:     sdk.NewDec(0),
+				RewardWeight:         sdkmath.LegacyNewDec(6),
+				RewardWeightRange:    types.RewardWeightRange{Min: sdkmath.LegacyNewDec(0), Max: sdkmath.LegacyNewDec(10)},
+				TakeRate:             sdkmath.LegacyNewDec(7),
+				TotalTokens:          sdkmath.ZeroInt(),
+				TotalValidatorShares: sdkmath.LegacyNewDec(0),
+				RewardChangeRate:     sdkmath.LegacyNewDec(0),
 				RewardChangeInterval: 0,
 			},
 		},
@@ -149,9 +151,9 @@ func TestDeleteAlliance(t *testing.T) {
 		Assets: []types.AllianceAsset{
 			{
 				Denom:        "uluna",
-				RewardWeight: sdk.NewDec(2),
-				TakeRate:     sdk.OneDec(),
-				TotalTokens:  sdk.ZeroInt(),
+				RewardWeight: sdkmath.LegacyNewDec(2),
+				TakeRate:     sdkmath.LegacyOneDec(),
+				TotalTokens:  sdkmath.ZeroInt(),
 			},
 		},
 	})
@@ -183,7 +185,7 @@ func TestUpdateParams(t *testing.T) {
 	app.AllianceKeeper.InitGenesis(ctx, &types.GenesisState{
 		Params: types.DefaultParams(),
 		Assets: []types.AllianceAsset{
-			types.NewAllianceAsset("uluna", sdk.NewDec(1), sdk.ZeroDec(), sdk.NewDec(2), sdk.NewDec(0), startTime),
+			types.NewAllianceAsset("uluna", sdkmath.LegacyNewDec(1), sdkmath.LegacyZeroDec(), sdkmath.LegacyNewDec(2), sdkmath.LegacyNewDec(0), startTime),
 		},
 	})
 	timeNow := time.Now().UTC()
@@ -202,7 +204,8 @@ func TestUpdateParams(t *testing.T) {
 	require.NoError(t, err)
 
 	// THEN
-	params := app.AllianceKeeper.GetParams(ctx)
+	params, err := app.AllianceKeeper.GetParams(ctx)
+	require.NoError(t, err)
 	require.Equal(t, time.Duration(100), params.RewardDelayTime)
 	require.Equal(t, time.Duration(100), params.TakeRateClaimInterval)
 	require.Equal(t, timeNow, params.LastTakeRateClaimTime)
@@ -216,7 +219,7 @@ func TestUnauthorizedUpdateParams(t *testing.T) {
 	app.AllianceKeeper.InitGenesis(ctx, &types.GenesisState{
 		Params: types.DefaultParams(),
 		Assets: []types.AllianceAsset{
-			types.NewAllianceAsset("uluna", sdk.NewDec(1), sdk.ZeroDec(), sdk.NewDec(2), sdk.NewDec(0), startTime),
+			types.NewAllianceAsset("uluna", sdkmath.LegacyNewDec(1), sdkmath.LegacyZeroDec(), sdkmath.LegacyNewDec(2), sdkmath.LegacyNewDec(0), startTime),
 		},
 	})
 	timeNow := time.Now().UTC()

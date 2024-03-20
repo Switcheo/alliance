@@ -7,7 +7,9 @@ import (
 
 	"github.com/terra-money/alliance/x/alliance/types"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store/prefix"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -33,8 +35,8 @@ func (k QueryServer) AllAlliancesDelegations(c context.Context, req *types.Query
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	store := ctx.KVStore(k.storeKey)
-	delegationStore := prefix.NewStore(store, types.DelegationKey)
+	store := k.storeService.OpenKVStore(ctx)
+	delegationStore := prefix.NewStore(runtime.KVStoreAdapter(store), types.DelegationKey)
 
 	pageRes, err := query.Paginate(delegationStore, req.Pagination, func(key []byte, value []byte) error {
 		var delegation types.Delegation
@@ -108,8 +110,8 @@ func (k QueryServer) AllAllianceValidators(c context.Context, req *types.QueryAl
 		Pagination: nil,
 	}
 
-	store := ctx.KVStore(k.storeKey)
-	valStore := prefix.NewStore(store, types.ValidatorInfoKey)
+	store := k.storeService.OpenKVStore(ctx)
+	valStore := prefix.NewStore(runtime.KVStoreAdapter(store), types.ValidatorInfoKey)
 
 	pageRes, err := query.Paginate(valStore, req.Pagination, func(key []byte, value []byte) error {
 		valAddr := sdk.ValAddress(key[1:]) // Due to length prefix when encoding the key
@@ -146,7 +148,12 @@ func (k QueryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*ty
 	// Get context with the information about the environment
 	ctx := sdk.UnwrapSDKContext(c)
 
-	params := k.GetParams(ctx)
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return &types.QueryParamsResponse{
+			Params: params,
+		}, err
+	}
 
 	return &types.QueryParamsResponse{
 		Params: params,
@@ -165,10 +172,10 @@ func (k QueryServer) Alliances(c context.Context, req *types.QueryAlliancesReque
 	ctx := sdk.UnwrapSDKContext(c)
 
 	// Get the key-value module store using the store key
-	store := ctx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 
 	// Get the part of the store that keeps assets
-	assetsStore := prefix.NewStore(store, types.AssetKey)
+	assetsStore := prefix.NewStore(runtime.KVStoreAdapter(store), types.AssetKey)
 
 	// Paginate the assets store based on PageRequest
 	pageRes, err := query.Paginate(assetsStore, req.Pagination, func(key []byte, value []byte) error {
@@ -248,7 +255,12 @@ func (k QueryServer) AllianceDelegationRewards(context context.Context, req *typ
 		return nil, err
 	}
 
-	_, found = k.GetDelegation(ctx, delAddr, val.GetOperator(), req.Denom)
+	valBz, err := k.GetValidatorAddrBz(val.GetOperator())
+	if err != nil {
+		return nil, err
+	}
+
+	_, found = k.GetDelegation(ctx, delAddr, valBz, req.Denom)
 	if !found {
 		return nil, stakingtypes.ErrNoDelegation
 	}
@@ -285,13 +297,13 @@ func (k QueryServer) AlliancesDelegation(c context.Context, req *types.QueryAlli
 	}
 
 	// Get the key-value module store using the store key
-	store := ctx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 
 	// Get the specific delegations key
 	key := types.GetDelegationsKey(delAddr)
 
 	// Get the part of the store that keeps assets
-	delegationsStore := prefix.NewStore(store, key)
+	delegationsStore := prefix.NewStore(runtime.KVStoreAdapter(store), key)
 
 	// Paginate the assets store based on PageRequest
 	pageRes, err := query.Paginate(delegationsStore, req.Pagination, func(key []byte, value []byte) error {
@@ -345,19 +357,19 @@ func (k QueryServer) AlliancesDelegationByValidator(c context.Context, req *type
 		return nil, err
 	}
 
-	_, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
+	_, err = k.stakingKeeper.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Validator not found by address %s", req.ValidatorAddr)
 	}
 
 	// Get the key-value module store using the store key
-	store := ctx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 
 	// Get the specific delegations key
 	key := types.GetDelegationsKeyForAllDenoms(delAddr, valAddr)
 
 	// Get the part of the store that keeps assets
-	delegationStore := prefix.NewStore(store, key)
+	delegationStore := prefix.NewStore(runtime.KVStoreAdapter(store), key)
 
 	// Paginate the assets store based on PageRequest
 	pageRes, err := query.Paginate(delegationStore, req.Pagination, func(key []byte, value []byte) error {
@@ -425,12 +437,17 @@ func (k QueryServer) AllianceDelegation(c context.Context, req *types.QueryAllia
 		return nil, status.Errorf(codes.NotFound, "AllianceAsset not found by denom %s", req.Denom)
 	}
 
-	delegation, found := k.GetDelegation(ctx, delAddr, validator.GetOperator(), req.Denom)
+	valBz, err := k.GetValidatorAddrBz(validator.GetOperator())
+	if err != nil {
+		return nil, err
+	}
+
+	delegation, found := k.GetDelegation(ctx, delAddr, valBz, req.Denom)
 	if !found {
 		return &types.QueryAllianceDelegationResponse{
 			Delegation: types.DelegationResponse{
-				Delegation: types.NewDelegation(ctx, delAddr, valAddr, req.Denom, sdk.ZeroDec(), []types.RewardHistory{}),
-				Balance:    sdk.NewCoin(req.Denom, sdk.ZeroInt()),
+				Delegation: types.NewDelegation(ctx, delAddr, valAddr, req.Denom, sdkmath.LegacyZeroDec(), []types.RewardHistory{}),
+				Balance:    sdk.NewCoin(req.Denom, sdkmath.ZeroInt()),
 			},
 		}, nil
 	}
@@ -502,10 +519,10 @@ func (k QueryServer) AllianceRedelegations(c context.Context, req *types.QueryAl
 	}
 
 	// Get the key-value module store using the store key
-	store := ctx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 
 	// Get the part of the store that keeps assets
-	redelegationsStore := prefix.NewStore(store, types.GetRedelegationsKeyByDelegatorAndDenom(delAddr, req.Denom))
+	redelegationsStore := prefix.NewStore(runtime.KVStoreAdapter(store), types.GetRedelegationsKeyByDelegatorAndDenom(delAddr, req.Denom))
 
 	var redelegationEntries []types.RedelegationEntry
 

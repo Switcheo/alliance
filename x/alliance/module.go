@@ -34,13 +34,18 @@ var (
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleSimulation = AppModule{}
-	_ module.EndBlockAppModule   = AppModule{}
 )
 
 type AppModuleBasic struct {
 	cdc  codec.Codec
 	pcdc *codec.ProtoCodec
 }
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, sk types.StakingKeeper,
@@ -104,7 +109,7 @@ type AppModule struct {
 	subspace      paramstypes.Subspace // Legacy for migration only
 }
 
-func (a AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (a AppModule) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
 	return EndBlocker(ctx, a.keeper)
 }
 
@@ -149,7 +154,7 @@ func (a AppModule) ProposalContents(_ module.SimulationState) []simtypes.Weighte
 	return nil
 }
 
-func (a AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {
+func (a AppModule) RegisterStoreDecoder(registry simtypes.StoreDecoderRegistry) {
 	registry[types.StoreKey] = simulation2.NewDecodeStore(a.cdc)
 }
 
