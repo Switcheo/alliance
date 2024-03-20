@@ -45,7 +45,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), custombankkeeper.NewMsgServerImpl(am.keeper, am.addressCodec))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	m := bankkeeper.NewMigrator(am.keeper.BaseKeeper, am.subspace)
+	m := bankkeeper.NewMigrator(*am.keeper.BaseKeeper, am.subspace)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/bank from version 1 to 2: %v", err))
 	}

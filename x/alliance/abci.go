@@ -4,15 +4,12 @@ import (
 	"fmt"
 
 	"github.com/terra-money/alliance/x/alliance/keeper"
-	"github.com/terra-money/alliance/x/alliance/types"
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // EndBlocker
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) error {
-	defer telemetry.ModuleMeasureSince(types.ModuleName, ctx.BlockTime(), telemetry.MetricKeyEndBlocker)
 	k.CompleteRedelegations(ctx)
 	if err := k.CompleteUnbondings(ctx); err != nil {
 		return fmt.Errorf("failed to complete undelegations from x/alliance module: %s", err)
