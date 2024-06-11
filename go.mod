@@ -200,7 +200,7 @@ require (
 
 // Golevel DB fix
 replace (
-	github.com/cometbft/cometbft => github.com/Switcheo/cometbft v0.38.6-0.20240604094622-baced902e260
-	github.com/cosmos/cosmos-sdk => github.com/Switcheo/cosmos-sdk v0.50.0-rc.0.0.20240604095012-5b340411a147
+	github.com/cometbft/cometbft => github.com/Switcheo/cometbft v0.38.6-0.20240610155832-d947aabd1250
+	github.com/cosmos/cosmos-sdk => github.com/Switcheo/cosmos-sdk v0.50.0-rc.0.0.20240611035703-d45cea2cb0b7
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
